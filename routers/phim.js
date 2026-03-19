@@ -16,15 +16,22 @@ router.get('/them', async (req, res) => {
     });
 });
 // POST: Thêm 
-router.post('/them', async (req, res) => {
-    var data=
-    {
-        TenPhim: req.body.TenPhim,
-        TheLoai: req.body.TheLoai,
-        DinhDang: req.body.DinhDang
+router.get('/phim/them', async (req, res) => {
+    try {
+        const listTheLoai = await TheLoai.find(); 
+        const listDinhDang = await DinhDang.find();
+
+        res.render('ten_file_cua_ban', {
+            title: 'Thêm Phim Mới',
+            theloais: listTheLoai,     // Gửi mảng thể loại sang view
+            dinhdangs: listDinhDang    // Gửi mảng định dạng sang view
+        });
+         await Phim.create(data);
+        res.redirect('/phim');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Lỗi server");
     }
-    await Phim.create(data);
-    res.redirect('/phim');
 });
 // GET: Sửa 
 router.get('/sua/:id', async (req, res) => {
@@ -37,15 +44,21 @@ router.get('/sua/:id', async (req, res) => {
 });
 // POST: Sửa
 router.post('/sua/:id', async (req, res) => {
-    var id=req.params.id;
-    var data=
-    {
-        TenPhim: req.body.TenPhim,
-        TheLoai: req.body.TheLoai,
-        DinhDang: req.body.DinhDang
+     try {
+        const listTheLoai = await TheLoai.find(); 
+        const listDinhDang = await DinhDang.find();
+
+        res.render('ten_file_cua_ban', {
+            title: 'Thêm Phim Mới',
+            theloais: listTheLoai,     // Gửi mảng thể loại sang view
+            dinhdangs: listDinhDang    // Gửi mảng định dạng sang view
+        });
+         await Phim.findByIdAndUpdate(data);
+        res.redirect('/phim');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Lỗi server");
     }
-    await Phim.findByIdAndUpdate(id,data);
-    res.redirect('/phim');
 });
 // GET: Xóa 
 router.get('/xoa/:id', async (req, res) => {
