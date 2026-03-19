@@ -32,16 +32,25 @@
                                 value="<%= phim.TenPhim %>" required />
                         </div>
                         <div class="mb-3">
-                            <label for="TheLoai" class="form-label">Loại</label>
+                            <label for="TheLoai" class="form-label">Thể loại</label>
                             <select class="form-select" id="TheLoai" name="TheLoai" required>
-                                <option value="">-- Chọn --</option>
-                            </select>
+                            <option value="">-- Chọn --</option>
+                            <% theloais.forEach(function(item) { %>
+                                <option value="<%= item._id %>">
+                                    <%= item.TenTheLoai %>
+                                </option>
+                                <% }); %>
+                        </select>
                         </div>
-
                         <div class="mb-3">
                             <label for="DinhDang" class="form-label">Định dạng</label>
                             <select class="form-select" id="DinhDang" name="DinhDang" required>
                                 <option value="">-- Chọn --</option>
+                                <% dinhdangs.forEach(function(item) { %>
+                                    <option value="<%= item._id %>">
+                                        <%= item.TenDinhDang %>
+                                    </option>
+                                <% }); %>
                             </select>
                         </div>
 
