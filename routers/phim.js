@@ -18,6 +18,7 @@ router.get('/', async (req, res) => {
         console.error(err);
         res.status(500).send("Lỗi tải danh sách phim");
     }
+    
 });
 // GET: Thêm 
 router.get('/them', async (req, res) => {
