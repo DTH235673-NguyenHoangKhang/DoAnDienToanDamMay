@@ -5,11 +5,19 @@ var TheLoai = require('../models/theloai');
 var DinhDang = require('../models/dinhdang');
 // GET: Danh sách 
 router.get('/', async (req, res) => {
-    var p=await Phim.find();
-    res.render('phim', {
-        title: 'Danh sách phim',
-        phim: p
-    });
+    try {
+        var p = await Phim.find()
+                     .populate('TheLoai')
+                     .populate('DinhDang');
+                     
+        res.render('phim', {
+            title: 'Danh sách phim',
+            phim: p
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Lỗi tải danh sách phim");
+    }
 });
 // GET: Thêm 
 router.get('/them', async (req, res) => {
