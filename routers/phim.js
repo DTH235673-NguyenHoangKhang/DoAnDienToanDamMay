@@ -5,7 +5,7 @@ var Phim = require('../models/phim');
 router.get('/', async (req, res) => {
     var p=await Phim.find();
     res.render('phim', {
-        title: 'Danh sách phim',
+        title: 'Danh sách phim 1',
         phim: p
     });
 });
