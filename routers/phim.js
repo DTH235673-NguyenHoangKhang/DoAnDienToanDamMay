@@ -28,7 +28,7 @@ router.get('/them', async (req, res) => {
     }
 });
 // POST: Thêm 
-router.post('/phim/them', async (req, res) => {
+router.post('/them', async (req, res) => {
     var data=
     {
         TenPhim: req.body.TenPhim,
