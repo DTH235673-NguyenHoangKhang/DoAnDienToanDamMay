@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 var Phim = require('../models/phim');
+var TheLoai = require('../models/theloai');
+var DinhDang = require('../models/dinhdang');
 // GET: Danh sách 
 router.get('/', async (req, res) => {
     var p=await Phim.find();
@@ -47,7 +49,6 @@ router.post('/sua/:id', async (req, res) => {
      try {
         const listTheLoai = await TheLoai.find(); 
         const listDinhDang = await DinhDang.find();
-
         res.render('ten_file_cua_ban', {
             title: 'Thêm Phim Mới',
             theloais: listTheLoai,     // Gửi mảng thể loại sang view
