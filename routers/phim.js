@@ -28,7 +28,6 @@ router.get('/phim/them', async (req, res) => {
             theloais: listTheLoai,     // Gửi mảng thể loại sang view
             dinhdangs: listDinhDang    // Gửi mảng định dạng sang view
         });
-         await Phim.create(data);
         res.redirect('/phim');
     } catch (err) {
         console.error(err);
@@ -54,7 +53,6 @@ router.post('/sua/:id', async (req, res) => {
             theloais: listTheLoai,     // Gửi mảng thể loại sang view
             dinhdangs: listDinhDang    // Gửi mảng định dạng sang view
         });
-         await Phim.findByIdAndUpdate(data);
         res.redirect('/phim');
     } catch (err) {
         console.error(err);
