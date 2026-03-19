@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Phim = require('../models/phim');
 var TheLoai = require('../models/theloai');
-
+var DinhDang = require('../models/dinhdang');
 // GET: Danh sách 
 router.get('/', async (req, res) => {
     var p=await Phim.find();
