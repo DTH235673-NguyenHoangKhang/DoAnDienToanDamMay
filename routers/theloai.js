@@ -11,7 +11,6 @@ router.get('/', async (req, res) => {
 });
 // GET: Thêm 
 router.get('/them', async (req, res) => {
-    console.log(">>> Đã nhận yêu cầu vào trang Thêm Thể Loại");
     res.render('theloai_them', {
         title: 'Thêm thể loại'
     });

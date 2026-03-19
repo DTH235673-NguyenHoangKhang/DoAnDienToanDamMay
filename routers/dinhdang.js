@@ -29,7 +29,7 @@ router.get('/sua/:id', async (req, res) => {
     var id=req.params.id;
     var dd=await DinhDang.findById(id);
     res.render('dinhdang_sua', {
-        title: 'Sửa định dạng',
+        title: 'Sửa định dạng1',
         dinhdang: dd
     });
 });
