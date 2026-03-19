@@ -1,0 +1,18 @@
+# Các thư mục thư viện (Rất nặng, không cần đẩy lên)
+node_modules/
+
+# File chứa mật khẩu và cấu hình nhạy cảm (CỰC KỲ QUAN TRỌNG)
+.env
+
+# Các file log (ghi lại nhật ký lỗi khi chạy)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Các thư mục build (nếu bạn có dùng TypeScript hoặc React)
+dist/
+build/
+
+# File rác của hệ điều hành
+.DS_Store
+Thumbs.db
