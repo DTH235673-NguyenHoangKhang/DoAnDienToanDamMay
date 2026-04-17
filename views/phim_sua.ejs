@@ -25,21 +25,30 @@
                     <%= title%>
                 </div>
                 <div class="card-body">
-                    <form action="/phim/sua/<%= phim._id %>" method="post" class="needs-validation" novalidate>
-                        <div class="mb-3">
+                    <form action="/phim/sua/<%= phim._id %>" method="post" class="needs-validation" novalidate enctype="multipart/form-data">                        <div class="mb-3">
                             <label for="TenPhim" class="form-label">Tên phim</label>
-                            <input type="text" class="form-control" id="TenPhim" name="TenPhim"
-                                value="<%= phim.TenPhim %>" required />
+                            <input type="text" class="form-control" id="TenPhim" name="TenPhim" required
+                                value="<%= phim.TenPhim %>" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="poster" class="form-label">Chọn Poster (Hình ảnh)</label>
+                            <input type="file" class="form-control" id="poster" name="poster" accept="image/*" 
+                                value="<%= phim.poster %>" />
+                            
+                            <div class="mt-2">
+                                <img src="<%= phim.poster %>" width="150" class="img-thumbnail">
+                                <input type="hidden" name="posterCu" value="<%= phim.poster %>">
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="TheLoai" class="form-label">Thể loại</label>
                             <select class="form-select" id="TheLoai" name="TheLoai" required>
                             <option value="">-- Chọn --</option>
                             <% theloais.forEach(function(item) { %>
-                                <option value="<%= item._id %>">
+                                <option value="<%= item._id %>" <%= item._id.toString() == phim.TheLoai._id.toString() ? 'selected' : '' %>>
                                     <%= item.TenTheLoai %>
                                 </option>
-                                <% }); %>
+                            <% }); %>
                         </select>
                         </div>
                         <div class="mb-3">
@@ -47,7 +56,7 @@
                             <select class="form-select" id="DinhDang" name="DinhDang" required>
                                 <option value="">-- Chọn --</option>
                                 <% dinhdangs.forEach(function(item) { %>
-                                    <option value="<%= item._id %>">
+                                    <option value="<%= item._id %>" <%= item._id.toString() == phim.DinhDang._id.toString() ? 'selected' : '' %>>
                                         <%= item.TenDinhDang %>
                                     </option>
                                 <% }); %>
@@ -68,3 +77,8 @@
 </body>
 
 </html>
+<% if (error) { %>
+    <script>
+        alert("<%= error %>");
+    </script>
+<% } %>

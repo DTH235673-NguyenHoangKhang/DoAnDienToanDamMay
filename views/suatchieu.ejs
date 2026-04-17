@@ -26,15 +26,16 @@
                 </div>
                 <div class="card-body">
                     <div class="card-body table-responsive">
-                        <a href="/phim/them" class="btn btn-primary mb-2"><i class="bi bi-plus-lg"></i> Thêm mới</a>
+                        <a href="/suatchieu/them" class="btn btn-primary mb-2"><i class="bi bi-plus-lg"></i> Thêm mới</a>
                         <table class="table table-bordered table-hover table-sm mb-0">
                             <thead>
                                 <tr>
                                     <th width="5%">#</th>
-                                    <th>Tên phim</th>
-                                    <th width="15%">Poster</th>
-                                    <th>Thể loại</th>
-                                    <th>Định dạng</th>
+                                    <th>Phim</th>
+                                    <th>Phòng chiếu</th>
+                                    <th>Ngày chiếu</th>
+                                    <th>Giờ bắt đầu</th>
+                                    <th>Giờ kết thúc</th>
                                     <th width="5%">Sửa</th>
                                     <th width="5%">Xóa</th>
                                 </tr>
@@ -43,30 +44,33 @@
                             </thead>
                             <tbody>
                                 <% var stt=1; %>
-                                    <% phim.forEach(p=> { %>
+                                    <% suatchieu.forEach(p=> { %>
                                         <tr>
                                             <th class="align-middle">
                                                 <%= stt++ %>
                                             </th>
                                             <td class="align-middle">
-                                                <%= p.TenPhim %>
-                                            </td>
-                                            <td class="align-middle text-center">
-                                                <img src="<%= p.poster %>" width="80" class="img-thumbnail">
+                                                <%= p.Phim.TenPhim %>
                                             </td>
                                             <td class="align-middle">
-                                                <%= p.TheLoai.TenTheLoai %>
+                                                <%= p.PhongChieu.TenPhongChieu %>
                                             </td>
                                             <td class="align-middle">
-                                                <%= p.DinhDang.TenDinhDang %>
-                                            </td>   
+                                                <%= p.NgayChieu.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' }) %>
+                                            </td>
+                                            <td class="align-middle">
+                                                <%= p.start %>
+                                            </td>
+                                            <td class="align-middle">
+                                                <%= p.end %>
+                                            </td>
                                             <td class="align-middle text-center">
-                                                <a href="/phim/sua/<%= p._id %>"><i
+                                                <a href="/suatchieu/sua/<%= p._id %>"><i
                                                         class="bi bi-pencil-square"></i></a>
                                             </td>
                                             <td class="align-middle text-center">
-                                                <a href="/phim/xoa/<%= p._id %>"
-                                                    onclick="return confirm('Bạn có muốn xóa phim <%= p.TenPhim %> không?');"><i
+                                                <a href="/suatchieu/xoa/<%= p._id %>"
+                                                    onclick="return confirm('Bạn có muốn xóa suất chiếu của <%= p.Phim.TenPhim %> không?');"><i
                                                         class="bi bi-trash text-danger"></i></a>
                                             </td>
                                         </tr>

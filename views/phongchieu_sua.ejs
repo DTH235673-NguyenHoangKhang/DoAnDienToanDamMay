@@ -25,13 +25,19 @@
                     <%= title%>
                 </div>
                 <div class="card-body">
-                    <form action="/theloai/them" method="post" class="needs-validation" novalidate>
+                    <form action="/phongchieu/sua/<%= phongchieu._id %>" method="post" class="needs-validation" novalidate>
                         <div class="mb-3">
-                            <label for="TenTheLoai" class="form-label">Tên thể loại</label>
-                            <input type="text" class="form-control" id="TenTheLoai" name="TenTheLoai" required>
+                            <label for="TenPhongChieu" class="form-label">Tên phòng chiếu</label>
+                            <input type="text" class="form-control" id="TenPhongChieu" name="TenPhongChieu"
+                                value="<%= phongchieu.TenPhongChieu %>" required />
+                        </div>
+                        <div class="mb-3">
+                            <label for="SoLuongGhe" class="form-label">Số lượng ghế</label>
+                            <input type="text" class="form-control" id="SoLuongGhe" name="SoLuongGhe"
+                                value="<%= phongchieu.SoLuongGhe %>" required />
                         </div>
 
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-arrow-up"></i> Thêm thể loại</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-arrow-up"></i> Cập nhật phòng chiếu</button>
                     </form>
                 </div>
             </div>

@@ -25,13 +25,19 @@
                     <%= title%>
                 </div>
                 <div class="card-body">
-                    <form action="/theloai/them" method="post" class="needs-validation" novalidate>
+                    <form action="/dangnhap" method="post" class="needs-validation" novalidate>
                         <div class="mb-3">
-                            <label for="TenTheLoai" class="form-label">Tên thể loại</label>
-                            <input type="text" class="form-control" id="TenTheLoai" name="TenTheLoai" required>
+                            <label for="TenDangNhap" class="form-label">Tên đăng nhập</label>
+                            <input type="text" class="form-control" id="TenDangNhap" name="TenDangNhap" required />
                         </div>
 
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-cloud-arrow-up"></i> Thêm thể loại</button>
+                        <div class="mb-3">
+                            <label for="MatKhau" class="form-label">Mật khẩu</label>
+                            <input type="password" class="form-control" id="MatKhau" name="MatKhau" required />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-right"></i> Đăng
+                            nhập</button>
                     </form>
                 </div>
             </div>
@@ -45,8 +51,3 @@
 </body>
 
 </html>
-<% if (error) { %>
-    <script>
-        alert("<%= error %>");
-    </script>
-<% } %>

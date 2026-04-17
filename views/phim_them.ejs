@@ -25,10 +25,17 @@
                     <%= title%>
                 </div>
                 <div class="card-body">
-                    <form action="/phim/them" method="post" class="needs-validation" novalidate>
-                        <div class="mb-3">
+                <form action="/phim/them" method="post" class="needs-validation" novalidate enctype="multipart/form-data">                        <div class="mb-3">
                             <label for="TenPhim" class="form-label">Tên phim</label>
                             <input type="text" class="form-control" id="TenPhim" name="TenPhim" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="poster" class="form-label">Chọn Poster (Hình ảnh)</label>
+                            <input type="file" class="form-control" id="poster" name="poster" accept="image/*"  >
+                            
+                            <div class="mt-2">
+                                <img id="preview" src="#" alt="Xem trước poster" style="max-width: 200px; display: none; border: 1px solid #ddd; padding: 5px; border-radius: 5px;" />
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label for="TheLoai" class="form-label">Thể loại</label>
@@ -68,3 +75,8 @@
 </body>
 
 </html>
+<% if (error) { %>
+    <script>
+        alert("<%= error %>");
+    </script>
+<% } %>

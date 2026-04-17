@@ -1,52 +1,108 @@
 var express = require('express');
 var router = express.Router();
 var TheLoai = require('../models/theloai');
+
 // GET: Danh sách 
 router.get('/', async (req, res) => {
-    var tl=await TheLoai.find();
-    res.render('theloai', {
-        title: 'Danh sách thể loại',
-        theloai: tl
-    });
+    try {
+        var tl = await TheLoai.find();
+        res.render('theloai', {
+            title: 'Danh sách thể loại',
+            theloai: tl
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Lỗi server");
+    }
 });
+
 // GET: Thêm 
-router.get('/them', async (req, res) => {
+router.get('/them', (req, res) => {
     res.render('theloai_them', {
-        title: 'Thêm thể loại'
+        title: 'Thêm thể loại',
+        error: null,
+        oldData: {}
     });
 });
+
 // POST: Thêm 
 router.post('/them', async (req, res) => {
-    var data=
-    {
-        TenTheLoai: req.body.TenTheLoai
+    try {
+        const { TenTheLoai } = req.body;
+
+        // 1. Kiểm tra trùng tên thể loại
+        const isExisted = await TheLoai.findOne({ TenTheLoai: TenTheLoai });
+
+        if (isExisted) {
+            return res.render('theloai_them', {
+                title: 'Thêm thể loại',
+                error: "Lỗi: Tên thể loại này đã tồn tại!",
+                oldData: req.body
+            });
+        }
+
+        await TheLoai.create({ TenTheLoai });
+        res.redirect('/theloai');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Lỗi server");
     }
-    await TheLoai.create(data);
-    res.redirect('/theloai');
 });
+
 // GET: Sửa 
 router.get('/sua/:id', async (req, res) => {
-    var id=req.params.id;
-    var tl=await TheLoai.findById(id);
-    res.render('theloai_sua', {
-        title: 'Sửa thể loại',
-        theloai: tl
-    });
+    try {
+        var id = req.params.id;
+        var tl = await TheLoai.findById(id);
+        res.render('theloai_sua', {
+            title: 'Sửa thể loại',
+            theloai: tl,
+            error: null
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Lỗi server");
+    }
 });
+
 // POST: Sửa
 router.post('/sua/:id', async (req, res) => {
-    var id=req.params.id;
-    var data=
-    {
-        TenTheLoai: req.body.TenTheLoai
+    try {
+        var id = req.params.id;
+        const { TenTheLoai } = req.body;
+
+        // 1. Kiểm tra trùng (loại trừ chính nó)
+        const isExisted = await TheLoai.findOne({ 
+            TenTheLoai: TenTheLoai, 
+            _id: { $ne: id } 
+        });
+
+        if (isExisted) {
+            return res.render('theloai_sua', {
+                title: 'Sửa thể loại',
+                theloai: { _id: id, TenTheLoai },
+                error: "Lỗi: Tên thể loại này đã tồn tại!"
+            });
+        }
+
+        await TheLoai.findByIdAndUpdate(id, { TenTheLoai });
+        res.redirect('/theloai');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Lỗi server");
     }
-    await TheLoai.findByIdAndUpdate(id,data);
-    res.redirect('/theloai');
 });
+
 // GET: Xóa 
 router.get('/xoa/:id', async (req, res) => {
-    var id=req.params.id;
-    await TheLoai.findByIdAndDelete(id);
-    res.redirect('/theloai');
+    try {
+        var id = req.params.id;
+        await TheLoai.findByIdAndDelete(id);
+        res.redirect('/theloai');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Lỗi server");
+    }
 });
+
 module.exports = router;

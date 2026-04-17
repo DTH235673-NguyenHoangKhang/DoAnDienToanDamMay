@@ -6,21 +6,36 @@
 }
 #header{
 	height: 100px;
+    border-radius: 5px;
 }
 #footer{
 	color: darkblue;
 }
 /* Xóa định dạng mặc định */
-.menubar, .submenu {
+.menubar{
+    font-weight: bold;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background: linear-gradient(135deg, #C8D61F,yellow);
+    /* Thêm 2 dòng này để căn giữa */
+    display: flex;
+    justify-content: center;
+    border-radius: 5px;
+}
+ .submenu {
     list-style: none;
     padding: 0;
     margin: 0;
     background-color: #C8D61F;
 }
+.menubar, .submenu {
+    padding: 0;
+    list-style-type: none;
+}
 
 /* Cho các mục chính nằm ngang */
 .menubar > li {
-    display: inline-block;
     position: relative; /* Quan trọng để menu con căn theo mục cha */
 }
 

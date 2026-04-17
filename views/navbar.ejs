@@ -1,20 +1,44 @@
 <nav class="menu-container">
-			<ul class="menubar">
-				<li><a href="#"><i class="bi bi-boxes"></i> KCinema</a></li>
-				<li><a href="#"><i class="bi bi-check-circle"></i> Phim mới</a></li>
-				<li><a href="#"><i class="bi bi-diagram-2"></i> Đăng ký</a></li>
-				<li><a href="#"><i class="bi bi-indent"></i> Đăng nhập</a></li>
-				<li class="dropdown">
-					<a href="#"><i class="bi bi-gear-wide-connected"></i> Quản lý</a>
-					<ul class="submenu">
-						<li><a href="/phim">Phim</a></li>
-						<li><a href="/theloai">Thể loại</a></li>
-						<li><a href="/dinhdang">Định dạng</a></li>
-						<li><a href="/phongchieu">Phòng chiếu</a></li>
-						<li><a href="/suatchieu">Suất chiếu</a></li>
-					</ul>
-				</li>
-				<li><a href="#"><i class="bi bi-people"></i> Tài khoản</a></li>
-				<li><a href="#"><i class="bi bi-power"></i> Đăng xuất</a></li>
-			</ul>
-		</nav>
+	<ul class="menubar">
+		<li><a href="#"><i class="bi bi-check-circle"></i>Lịch chiếu</a></li>
+		<% if(typeof session==="undefined" || !session.MaNguoiDung) { %>
+			<li><a href="/dangky"><i class="bi bi-diagram-2"></i> Đăng ký</a></li>
+			<li><a href="/dangnhap"><i class="bi bi-indent"></i> Đăng nhập</a></li>
+			<% } else { %>
+				<% if(session.QuyenHan=="admin" ) { %>
+					<li class="dropdown">
+						<a href="#"><i class="bi bi-gear-wide-connected"></i> Quản lý</a>
+						<ul class="submenu">
+							<li><a href="/phim">Phim</a></li>
+							<li><a href="/theloai">Thể loại</a></li>
+							<li><a href="/dinhdang">Định dạng</a></li>
+							<li><a href="/phongchieu">Phòng chiếu</a></li>
+							<li><a href="/suatchieu">Suất chiếu</a></li>
+						</ul>
+					</li>
+					<% } %>
+				<% if(session.QuyenHan!="admin" ) { %>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+								aria-expanded="false">
+								<i class="bi bi-person"></i>
+								<%= session.HoVaTen %>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a class="dropdown-item" href="#"><i
+											class="bi bi-file-earmark-plus"></i> Đăng bài viết</a></li>
+								<li><a class="dropdown-item" href="#"><i
+											class="bi bi-journal-bookmark"></i> Bài viết của tôi</a></li>
+								<li>
+									<hr class="dropdown-divider">
+								</li>
+								<li><a class="dropdown-item" href="#"><i class="bi bi-person-badge"></i> Hồ sơ cá nhân</a></li>
+							</ul>
+						</li>
+						<% } %>
+						<li class="nav-item">
+							<a class="nav-link" href="/dangxuat"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
+						</li>
+						<% } %>
+	</ul>
+</nav>
