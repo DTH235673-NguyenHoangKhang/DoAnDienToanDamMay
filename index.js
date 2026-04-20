@@ -2,8 +2,8 @@ require('dotenv').config(); // Load biến môi trường
 
 var express = require('express');
 var app = express();
-const port = process.env.PORT || 5000;
-const dbUri = process.env.MONGODB_URI;
+const port = 5000;
+const dbUri ='mongodb://DoAnDienToanDamMay:admin123@ac-kyxrmyd-shard-00-01.wwvy5d3.mongodb.net:27017/trangtin?ssl=true&authSource=admin' ;
 
 var mongoose = require('mongoose');
 var session = require('express-session');
