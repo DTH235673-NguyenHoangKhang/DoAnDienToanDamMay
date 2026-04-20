@@ -31,7 +31,8 @@ router.get('/sua/:id', async (req, res) => {
         var tl=await PhongChieu.findById(id);
         res.render('phongchieu_sua', {
             title: 'Sửa phòng chiếu',
-            phongchieu: tl
+            phongchieu: tl,
+            error: null
         });
 });
 // POST: Sửa

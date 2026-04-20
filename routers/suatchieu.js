@@ -47,7 +47,8 @@ async function checkConstraints(reqBody) {
     today.setHours(0, 0, 0, 0);
 
     if (inputDate <= today) {
-        return "Lỗi: Ngày chiếu phải từ ngày mai.";
+        req.session.error= "Lỗi: Ngày chiếu phải từ ngày mai.";
+        redirect('/error')
     }
 
     return null; 
@@ -67,6 +68,8 @@ router.get('/them', async (req, res) => {
         } catch (err) {
             console.error(err);
             res.status(500).send("Lỗi server");
+            req.session.error="Lỗi server";
+            redirect('/error')
         }
     });
 
@@ -138,7 +141,8 @@ router.get('/sua/:id', async (req, res) => {
             title: 'Sửa suất chiếu',
             suatchieu: tl,
             phims: listPhim,
-            phongchieus: listPhongChieu
+            phongchieus: listPhongChieu,
+            error: null
         });
 });
 // POST: Sửa
@@ -169,7 +173,13 @@ router.post('/sua/:id', async (req, res) => {
         });
 
         if (isExisted) {
-            // ... render lại trang sửa với lỗi trùng lịch ...
+             res.render('suatchieu_sua', {
+            title: 'Sửa suất chiếu',
+            suatchieu: tl,
+            phims: listPhim,
+            phongchieus: listPhongChieu,
+            error: null
+        });
         }
 
         await SuatChieu.findByIdAndUpdate(id, { start, end, Phim: phimId, PhongChieu: phongId, NgayChieu });
@@ -177,6 +187,7 @@ router.post('/sua/:id', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send("Lỗi server");
+        req.session.error="Lỗi server";
     }
 });
 // GET: Xóa 

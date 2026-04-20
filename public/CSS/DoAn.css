@@ -21,6 +21,7 @@
     /* Thêm 2 dòng này để căn giữa */
     display: flex;
     justify-content: center;
+    align-items: center;
     border-radius: 5px;
 }
  .submenu {
@@ -89,5 +90,109 @@ ul {
 ul li {
 	margin-right:5px;
 }
+/* Tùy chỉnh form tìm kiếm */
+.menubar form[role="search"] {
+    margin-left: 20px; /* Tạo khoảng cách với các menu item */
+    padding: 5px 0;    /* Tạo khoảng đệm trên dưới */
+}
 
+.menubar .form-control {
+    height: 34px;      /* Giới hạn chiều cao ô input */
+    font-size: 0.9rem; /* Chữ nhỏ hơn một chút cho gọn */
+    width: 200px;      /* Độ rộng vừa phải */
+}
 
+.menubar .btn-outline-success {
+    height: 34px;      /* Chiều cao nút bấm khớp với ô input */
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* Container bao quanh để giữ mũi tên và thanh cuộn (nếu cần) */
+.date-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    padding: 10px 0;
+}
+
+/* Thanh cuộn chứa các ngày */
+.scroll-ngang {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    scroll-behavior: smooth;
+    gap: 20px;
+    padding: 10px;
+    width: 100%;
+    /* Ẩn thanh cuộn */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+}
+
+.scroll-ngang::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Brave */
+}
+
+/* Từng item ngày */
+.date-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: #333;
+    min-width: 50px;
+}
+
+.date-item .thu {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.date-item .ngay-tron {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+/* Khi được chọn (Active) */
+.date-item.active .ngay-tron {
+    background-color: #000;
+    color: #fff;
+}
+
+.date-item.active .thu {
+    font-weight: bold;
+}
+
+/* Màu cho ngày cuối tuần giống Lotte */
+.date-item .thu.sat { color: #007bff; }
+.date-item .thu.sun { color: #dc3545; }/* Định dạng lại nút ngày cho to và rõ */
+.btn-ngay {
+    min-width: 70px;
+    height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px !important;
+}
+
+/* Định dạng nút suất chiếu - Quan trọng: có min-width để không bị xẹp */
+.btn-suat-chieu {
+    min-width: 85px; /* Ép nút phải có độ rộng */
+    padding: 8px 12px !important;
+    font-weight: bold !important;
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+    text-decoration: none;
+    border-radius: 8px !important;
+    display: inline-block;
+}
