@@ -18,105 +18,166 @@
             <img src="/images/banner.jpg" />
         </div>
 
+        <div class="card-body">
+            <div class="cinema-container text-center">
+                <div class="screen mb-4" style="margin-top: 10px;">MÀN HÌNH</div>
 
-            <div class="card-body">
-                <div class="cinema-container text-center">
-                    <div class="screen mb-4" style="margin-top: 10px;">MÀN HÌNH</div>
+                <div class="seats-layout">
+                    <% let listHang=['A', 'B' , 'C' , 'D' , 'E' ]; %>
+                        <% listHang.forEach(function(hang) { %>
+                            <div class="seat-row d-flex justify-content-center mb-2">
+                                <span class="row-label me-3">
+                                    <%= hang %>
+                                </span>
+                                <% for(let i=1; i<=10; i++) { let maGhe=hang + i; let daDat=gheDaBan.includes(maGhe)
+                                    ? 'occupied' : '' ; %>
+                                    <div class="seat <%= daDat %>" data-seat="<%= maGhe %>">
+                                        <%= i %>
+                                    </div>
+                                    <% } %>
+                            </div>
+                            <% }); %>
+                </div>
+            </div>
 
-                    <div class="seats-layout">
-                        <% // Đảm bảo hangGhe đã được định nghĩa 
-                            let listHang=['A', 'B' , 'C' , 'D' , 'E' ]; %>
-                            <% listHang.forEach(function(hang) { %>
-                                <div class="seat-row d-flex justify-content-center mb-2">
-                                    <span class="row-label me-3">
-                                        <%= hang %>
-                                    </span>
-                                    <% for(let i=1; i<=10; i++) { let maGhe=hang + i; // gheDaBan truyền từ router sang
-                                        let daDat=gheDaBan.includes(maGhe) ? 'occupied' : '' ; %>
-                                        <div class="seat <%= daDat %>" data-seat="<%= maGhe %>">
-                                            <%= i %>
-                                        </div>
-                                        <% } %>
-                                </div>
-                                <% }); %>
+            <div class="booking-summary mt-4 p-3 border-top text-center">
+                <h5>Thông tin đặt vé</h5>
+                <p>Ghế đã chọn: <span id="selected-seats-list" class="fw-bold text-danger">Chưa chọn</span></p>
+                <p>Tổng tiền gốc: <span id="original-price" class="text-decoration-line-through text-muted">0</span> VNĐ
+                </p>
+                <p>Thành tiền: <span id="total-price" class="fw-bold text-primary fs-4">0</span> VNĐ</p>
+
+                <div class="loyalty-box mb-3 p-3 border rounded bg-light text-start">
+                    <label class="fw-bold"><i class="bi bi-coin text-warning"></i> Blockchain Loyalty</label>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span>Số dư: <strong id="user-balance">
+                                <%= taikhoan.DiemLoyalty || 0 %>
+                            </strong> Token</span>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="use-points" name="usePoints"
+                                data-points="<%= taikhoan.DiemLoyalty || 0 %>">
+                            <label class="form-check-label" for="use-points">Dùng điểm (1 Token = 1.000đ)</label>
+                        </div>
                     </div>
+                    <small id="loyalty-msg" class="text-success" style="display: none;"></small>
                 </div>
 
-                <div class="booking-summary mt-4 p-3 border-top text-center">
-                    <h5>Thông tin đặt vé</h5>
-                    <p>Ghế đã chọn: <span id="selected-seats-list" class="fw-bold text-danger">Chưa chọn</span></p>
-                    <p>Tổng tiền: <span id="total-price" class="fw-bold text-primary">0</span> VNĐ</p>
-                    <div class="loyalty-box mb-3 p-3 border rounded bg-light text-start">
-    <label class="fw-bold"><i class="bi bi-coin text-warning"></i> Blockchain Loyalty</label>
-    <div class="d-flex justify-content-between align-items-center mt-2">
-        <span>Số dư: <strong id="user-balance">0</strong> Token</span>
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="use-points" name="usePoints">
-            <label class="form-check-label" for="use-points">Dùng điểm (1 Token = 1.000đ)</label>
-        </div>
-    </div>
-</div>
-
-                    <form action="/xuly-datve" method="POST" id="formDatVe">
-                        <input type="hidden" name="idSuatChieu" value="<%= suatChieu._id %>">
-                        <input type="hidden" name="danhSachGhe" id="inputGhe">
-                        <input type="hidden" name="tongTien" id="inputTien">
+                <form action="/xuly-datve" method="POST" id="formDatVe">
+                    <input type="hidden" name="idSuatChieu" value="<%= suatChieu._id %>">
+                    <input type="hidden" name="danhSachGhe" id="inputGhe">
+                    <input type="hidden" name="tongTien" id="inputTien">
+                    <input type="hidden" name="diemSuDung" id="inputDiemSuDung" value="0">
 
                     <button type="submit" id="btn-pay" class="btn btn-success btn-lg w-100" disabled>
-                        THANH TOÁN QUA VNPAY
+                        THANH TOÁN
                     </button>
-                    </form>
-                </div>
+                </form>
             </div>
-            <div id="footer">
-                <%- include('footer') %>
-            </div>
+        </div>
+        <div id="footer">
+            <%- include('footer') %>
+        </div>
 
-            <%- include('javascript') %>
+        <%- include('javascript') %>
     </div>
+
     <script>
         const seats = document.querySelectorAll('.seat:not(.occupied)');
         const selectedSeatsList = document.getElementById('selected-seats-list');
         const totalPriceElement = document.getElementById('total-price');
+        const originalPriceElement = document.getElementById('original-price');
         const btnPay = document.getElementById('btn-pay');
+        const usePointsSwitch = document.getElementById('use-points');
+        const loyaltyMsg = document.getElementById('loyalty-msg');
 
         const inputGhe = document.getElementById('inputGhe');
         const inputTien = document.getElementById('inputTien');
+        const inputDiemSuDung = document.getElementById('inputDiemSuDung');
 
         let selectedSeats = [];
-        const GIA_VE = 65000; // Giá vé giả định
+        const GIA_VE = 65000;
+        const DIEM_QUY_DOI = 1000; // 1 điểm = 1000đ
 
+        function updateUI() {
+            let soLuong = selectedSeats.length;
+            let tongTienGoc = soLuong * GIA_VE;
+            let diemHienCo = parseInt(usePointsSwitch.getAttribute('data-points')) || 0;
+
+            let thanhTien = tongTienGoc;
+            let diemSeDung = 0;
+
+            if (usePointsSwitch.checked && soLuong > 0) {
+                // 1. Tính số điểm tối đa cần dùng để vé về 0đ
+                // Ví dụ: Vé 65.000đ -> cần 65 điểm. Vé 120.000đ -> cần 120 điểm.
+                let diemCanThietDeMienPhi = Math.ceil(tongTienGoc / DIEM_QUY_DOI);
+
+                // 2. Ràng buộc: Nếu có nhiều điểm hơn mức cần thiết, chỉ dùng đủ mức cần thiết
+                if (diemHienCo >= diemCanThietDeMienPhi) {
+                    diemSeDung = diemCanThietDeMienPhi;
+                    thanhTien = 0; // Vé được miễn phí hoàn toàn
+                } else {
+                    // Nếu không đủ điểm để miễn phí, dùng hết số điểm đang có
+                    diemSeDung = diemHienCo;
+                    thanhTien = tongTienGoc - (diemSeDung * DIEM_QUY_DOI);
+                }
+
+                // Hiển thị thông báo số dư còn lại sau khi dùng
+                let soDuConLai = diemHienCo - diemSeDung;
+                loyaltyMsg.innerHTML = `Sử dụng <b>${diemSeDung}</b> điểm. Giảm <b>${(diemSeDung * DIEM_QUY_DOI).toLocaleString()}đ</b>.<br>` +
+                    `<small class="text-muted">Số dư còn lại sau khi đặt: ${soDuConLai} điểm (dùng cho lần sau).</small>`;
+                loyaltyMsg.style.display = 'block';
+                originalPriceElement.parentElement.style.display = 'block';
+            } else {
+                loyaltyMsg.style.display = 'none';
+                originalPriceElement.parentElement.style.display = 'none';
+            }
+
+            // Cập nhật hiển thị tiền và danh sách ghế
+            selectedSeatsList.innerText = soLuong > 0 ? selectedSeats.join(', ') : 'Chưa chọn';
+            originalPriceElement.innerText = tongTienGoc.toLocaleString('vi-VN');
+            totalPriceElement.innerText = thanhTien.toLocaleString('vi-VN');
+
+            // Gán vào hidden inputs để gửi về Server
+            inputGhe.value = JSON.stringify(selectedSeats);
+            inputTien.value = thanhTien;
+            inputDiemSuDung.value = diemSeDung; // Chỉ gửi số điểm thực tế sẽ bị trừ
+
+            btnPay.disabled = soLuong === 0;
+        }
+        // Sự kiện click ghế
         seats.forEach(seat => {
             seat.addEventListener('click', () => {
                 const seatId = seat.getAttribute('data-seat');
-
                 if (seat.classList.contains('selected')) {
-                    // Nếu đã chọn thì bỏ chọn
                     seat.classList.remove('selected');
                     selectedSeats = selectedSeats.filter(s => s !== seatId);
                 } else {
-                    // Nếu chưa chọn thì thêm vào mảng
                     seat.classList.add('selected');
                     selectedSeats.push(seatId);
                 }
-
-                // Cập nhật giao diện
-                selectedSeatsList.innerText = selectedSeats.length > 0 ? selectedSeats.join(', ') : 'Chưa chọn';
-                let tongTien = selectedSeats.length * GIA_VE;
-                totalPriceElement.innerText = tongTien.toLocaleString('vi-VN');
-
-                // Cập nhật giá trị vào Form ẩn
-                inputGhe.value = JSON.stringify(selectedSeats);
-                inputTien.value = tongTien;
-
-                // Kích hoạt nút thanh toán
-                btnPay.disabled = selectedSeats.length === 0;
+                updateUI();
             });
         });
+
+        // Sự kiện bật/tắt dùng điểm
+        usePointsSwitch.addEventListener('change', updateUI);
+        document.getElementById('formDatVe').addEventListener('submit', function(e) {
+    // Đảm bảo lấy giá trị mới nhất từ UI trước khi gửi
+    const diemHienCo = parseInt(document.getElementById('use-points').getAttribute('data-points')) || 0;
+    const isChecked = document.getElementById('use-points').checked;
+    const tongTienGoc = selectedSeats.length * GIA_VE;
+
+    if (isChecked) {
+        let diemCanThiet = Math.ceil(tongTienGoc / DIEM_QUY_DOI);
+        // Nếu điểm dư thì chỉ lấy đủ dùng, nếu thiếu thì lấy hết
+        document.getElementById('inputDiemSuDung').value = (diemHienCo >= diemCanThiet) ? diemCanThiet : diemHienCo;
+    } else {
+        document.getElementById('inputDiemSuDung').value = 0;
+    }
+    
+    console.log("Dữ liệu gửi về Server - Điểm sử dụng:", document.getElementById('inputDiemSuDung').value);
+});
     </script>
-    <script>
-    // Khai báo giả để file giao diện không báo lỗi nữa
-</script>
 </body>
 
 </html>

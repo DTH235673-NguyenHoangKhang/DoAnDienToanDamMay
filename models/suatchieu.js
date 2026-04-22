@@ -6,5 +6,5 @@ var suatChieuSchema = new mongoose.Schema({
  PhongChieu: { type: mongoose.Schema.Types.ObjectId, ref: 'PhongChieu' },
  NgayChieu: { type: Date, required: true },
 });
-var suatChieuModel = mongoose.model('suatChieu', suatChieuSchema);
+var suatChieuModel = mongoose.model('SuatChieu', suatChieuSchema);
 module.exports = suatChieuModel;

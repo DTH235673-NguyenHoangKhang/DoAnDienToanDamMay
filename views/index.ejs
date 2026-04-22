@@ -92,11 +92,12 @@
                                                     return laPhimNay && hopLe;
                                                 });
 
-                                                if (suatHienThi.length > 0) {
+                                                if (suatHienThi.length > 0 ) {
                                                     suatHienThi.forEach(function(sc) { 
                                                         // Lấy nhãn độ tuổi (Ví dụ: "T18", "T16", "T13", "P")
                                                         let label = (item.DinhDang) ? item.DinhDang.TenDinhDang : "";
                                             %>
+                                            
                                                         <a href="/datve/<%= sc._id %>" 
                                                         class="btn btn-sm btn-outline-dark fw-bold"
                                                         onclick="return xacNhanDoTuoi(event, '<%= label %>')">
