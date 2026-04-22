@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/CSS/DoAn.css" />
+    <title>
+        <%= title%> - Quản lý rạp phim
+    </title>
+</head>
+
+<body>
+
+    <div class="text-center mb-4 no-print">
+        <button onclick="window.print()" class="btn btn-danger btn-lg">
+            <i class="bi bi-printer"></i> In Vé Ngay
+        </button>
+        <a href="/" class="btn btn-outline-secondary ms-2">
+        <i class="fas fa-home"></i> Quay về trang chủ
+    </a>
+    </div>
+
+    <div id="ticket-container" class="ticket-card">
+        <div class="ticket-header">
+            <h2 class="cinema-name">KCINEMA</h2>
+            <div class="ticket-type">VÉ XEM PHIM (E-TICKET)</div>
+        </div>
+
+        <div class="ticket-body">
+            <h1 class="movie-title">
+                <%= phim.TenPhim %>
+            </h1>
+                            
+            <div class="info-row">
+                <div class="info-item">
+                    <span class="label">NGÀY</span>
+                    <span class="value">
+                        <%= new Date(suatChieu.NgayChieu).toLocaleDateString('vi-VN') %>
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="label">SUẤT CHIẾU</span>
+                    <span class="value">
+                        <%= suatChieu.start %>
+                    </span>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-item">
+                    <span class="label">PHÒNG</span>
+                    <span class="value">
+                        <%= suatChieu.PhongChieu ? suatChieu.PhongChieu.TenPhongChieu : 'Chưa xác định' %>
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="label">GHẾ</span>
+                    <span class="value">
+                        <%= ve.DanhSachGhe.join(', ') %></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="ticket-footer">
+        <div class="qr-section">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?data=<%= ve._id %>&size=150x150" alt="QR Code">
+            <p class="ticket-id">Mã vé: <%= ve._id %></p>
+        </div>
+        <div class="terms">
+            * Vui lòng có mặt trước 15 phút.<br>
+            * Vé đã mua không được đổi trả.
+        </div>
+    </div>
+</div>
+</body>
+</html>

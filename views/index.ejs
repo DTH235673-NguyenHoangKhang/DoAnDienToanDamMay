@@ -27,9 +27,7 @@
                 <div class="card-body">
                     <div class="date-container border-bottom mb-4">
                         <div class="scroll-ngang" id="dateScroll">
-                            <% dsNgay.forEach(function(ngay) { let d=new Date(ngay); let thuIndex=d.getDay();
-                                let tenThu=(thuIndex===0) ? 'CN' : (thuIndex===1 ? 'Hai' : 'Ba' + '' );
-                                d.toLocaleDateString
+                            <% dsNgay.forEach(function(ngay) { let d=new Date(ngay); let thuIndex=d.getDay(); let
                                 weekday=["CN", "Hai" , "Ba" , "Tư" , "Năm" , "Sáu" , "Bảy" ]; let
                                 thuTiengViet=weekday[thuIndex]; let activeClass=(ngay==ngayChon) ? 'active' : '' ; let
                                 colorClass=(thuIndex===0) ? 'sun' : (thuIndex===6 ? 'sat' : '' ); %>
@@ -44,47 +42,114 @@
                                 <% }); %>
                         </div>
                     </div>
-
                     <div class="row">
-                        <% phim.forEach(function(item) { %>
+                        <% // BƯỚC LỌC: Chỉ lấy những phim có ID xuất hiện trong danh sách suatChieu let
+                            phimDangChieu=phim.filter(p=> {
+                            return suatChieu.some(sc => {
+                            // Lấy ID của phim từ suất chiếu (trường hợp sc.Phim là Object hoặc ID)
+                            let idPhimTrongSuat = (sc.Phim && sc.Phim._id) ? sc.Phim._id : sc.Phim;
+                            return idPhimTrongSuat && idPhimTrongSuat.toString() === p._id.toString();
+                            });
+                            });
+
+                            if (phimDangChieu.length > 0) {
+                            phimDangChieu.forEach(function(item) {
+                            %>
                             <div class="col-md-3 mb-4">
                                 <div class="card h-100 border-0 shadow-sm">
                                     <img src="<%= item.poster %>" class="card-img-top"
                                         style="height: 350px; object-fit: cover;">
                                     <div class="card-body">
-                                        <h6 class="fw-bold">
-                                            <%= item.TenPhim %>
+                                        <h6 class="fw-bold d-flex align-items-center gap-2">
+                                            <% if (item.DinhDang) { %>
+                                                <% let label=item.DinhDang.TenDinhDang; let bgClass="bg-secondary" ; if
+                                                    (label.includes("T18")) bgClass="bg-danger" ; else if
+                                                    (label.includes("T16")) bgClass="bg-warning text-dark" ; else if
+                                                    (label==="P" ) bgClass="bg-success" ; %>
+                                                    <span class="badge <%= bgClass %>"
+                                                        style="font-size: 0.7rem; padding: 0.4em 0.6em;">
+                                                        <%= label %>
+                                                    </span>
+                                                    <% } %>
+
+                                                        <span>
+                                                            <%= item.TenPhim %>
+                                                        </span>
                                         </h6>
                                         <div class="d-flex flex-wrap gap-2 mt-2">
-                                            <% let suatCuaPhim=suatChieu.filter(s=> (s.Phim || s.IdPhim ||
-                                                "").toString() == item._id.toString());
-                                                if (suatCuaPhim.length > 0) {
-                                                suatCuaPhim.forEach(function(sc) {
-                                                %>
-                                                <a href="/datve/<%= sc._id %>"
-                                                    class="btn btn-sm btn-outline-dark fw-bold">
-                                                    <%= sc.start %>
-                                                </a>
-                                                <% }); } else { %>
-                                                    <small class="text-muted italic">Hết suất</small>
-                                                    <% } %>
-                                        </div>
+                                            <% 
+                                                let bayGio = new Date().getTime(); 
+
+                                                let suatHienThi = suatChieu.filter(function(s) {
+                                                    let idPhimTrongSuat = (s.Phim && s.Phim._id) ? s.Phim._id : (s.Phim || s.IdPhim || "");
+                                                    let laPhimNay = idPhimTrongSuat.toString() === item._id.toString();
+
+                                                    let mangNgay = ngayChon.split('-'); 
+                                                    let mangGio = s.start.split(':');   
+                                                    let gioChieu = new Date(mangNgay[0], mangNgay[1] - 1, mangNgay[2], mangGio[0], mangGio[1]).getTime();
+
+                                                    let hopLe = (gioChieu - bayGio) > (5 * 60 * 1000);
+                                                    return laPhimNay && hopLe;
+                                                });
+
+                                                if (suatHienThi.length > 0) {
+                                                    suatHienThi.forEach(function(sc) { 
+                                                        // Lấy nhãn độ tuổi (Ví dụ: "T18", "T16", "T13", "P")
+                                                        let label = (item.DinhDang) ? item.DinhDang.TenDinhDang : "";
+                                            %>
+                                                        <a href="/datve/<%= sc._id %>" 
+                                                        class="btn btn-sm btn-outline-dark fw-bold"
+                                                        onclick="return xacNhanDoTuoi(event, '<%= label %>')">
+                                                            <%= sc.start %>
+                                                        </a>
+                                            <% 
+                                                    }); 
+                                                } else { 
+                                            %>
+                                                    <small class="text-muted"><i>Hết suất đặt online</i></small>
+                                            <% } %>
+                                        </div>                                    
                                     </div>
                                 </div>
                             </div>
-                            <% }); %>
-                            <% if (phim.length === 0) { %>
-                                <p class="text-center text-muted">Không có phim nào đang chiếu.</p>
-                            <% } %>
+                            <% }); } else { %>
+                                <div class="col-12">
+                                    <p class="text-center text-muted">Không có suất chiếu trong ngày này.</p>
+                                </div>
+                                <% } %>
                     </div>
                 </div>
             </div>
+
             <div id="footer">
                 <%- include('footer') %>
             </div>
 
             <%- include('javascript') %>
     </div>
+        <script>
+    function xacNhanDoTuoi(event, label) {
+        let message = "";
+        
+        // Kiểm tra các nhãn giới hạn độ tuổi
+        if (label.includes("T18")) {
+            message = "Phim này dành cho khán giả từ 18 tuổi trở lên. Bạn có chắc chắn mình đủ tuổi?";
+        } else if (label.includes("T16")) {
+            message = "Phim này dành cho khán giả từ 16 tuổi trở lên. Vui lòng xác nhận độ tuổi của bạn.";
+        } else if (label.includes("T13")) {
+            message = "Phim này dành cho khán giả từ 13 tuổi trở lên. Bạn có chắc chắn muốn tiếp tục?";
+        }
+
+        // Nếu có thông báo (phim có giới hạn tuổi) thì hiện confirm
+        if (message !== "") {
+            if (!confirm(message)) {
+                event.preventDefault(); // Ngăn không cho chuyển trang nếu chọn Cancel
+                return false;
+            }
+        }
+        return true;
+    }
+    </script>
 </body>
 
 </html>

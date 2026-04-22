@@ -196,3 +196,154 @@ ul li {
     border-radius: 8px !important;
     display: inline-block;
 }
+/* --- 3. Container phòng chiếu (Đã bỏ nền đen) --- */
+.cinema-container {
+    padding: 60px 20px;
+    background-color: #ffffff; /* Đổi sang nền trắng */
+    border: 1px solid #eee;    /* Thêm viền nhẹ để phân tách vùng */
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.screen {
+    background: #fff; /* Màu trắng của màn chiếu */
+    height: 70px;
+    width: 70%;       /* Thu nhỏ chiều ngang một chút để tạo độ thoáng */
+    margin: 0 auto 60px auto; 
+    
+    /* TẠO ĐỘ CONG: Bo tròn mạnh ở phía dưới để tạo hiệu ứng cong lồi */
+    border-bottom-left-radius: 50% 20px;
+    border-bottom-right-radius: 50% 20px;
+    
+    /* HIỆU ỨNG ÁNH SÁNG: Hắt sáng xuống phía dưới các hàng ghế */
+    box-shadow: 0 15px 25px rgba(255, 255, 255, 0.4); 
+    
+    /* ĐỘ NGHIÊNG: Giữ lại để tạo cảm giác chiều sâu không gian 3D */
+    transform: perspective(500px) rotateX(-15deg);
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    letter-spacing: 15px; /* Giãn chữ ra cho sang trọng */
+    color: #333;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0,0,0,0.1);
+}.seat { 
+    width: 30px; height: 30px; background: #444451; 
+    margin: 5px; border-top-left-radius: 10px; border-top-right-radius: 10px;
+    display: inline-block; cursor: pointer; color: white; font-size: 10px;
+}
+.seat.selected { background: #6feaf6; color: #000; }
+.seat.occupied { background: #ff4d4d; cursor: not-allowed; }
+.seat {
+    width: 35px;
+    height: 35px;
+    background-color: #444451;
+    margin: 3px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    cursor: pointer;
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.seat:hover:not(.occupied) {
+    background-color: #6feaf6;
+    transform: scale(1.1);
+}
+
+.seat.selected {
+    background-color: #2ecc71 !important; /* Màu xanh lá khi chọn */
+}
+
+.seat.occupied {
+    background-color: #e74c3c !important; /* Màu đỏ khi đã có người đặt */
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.screen {
+    background: #ccc;
+    height: 10px;
+    width: 50%;
+    margin: 0 auto;
+    box-shadow: 0 3px 10px rgba(255,255,255,0.7);
+}
+/* Giao diện xem trên máy tính */
+.ticket-card {
+    width: 400px;
+    margin: 20px auto;
+    border: 2px solid #333;
+    border-radius: 15px;
+    background: #fff;
+    font-family: 'Courier New', Courier, monospace; /* Font kiểu vé máy in nhiệt */
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.ticket-header {
+    background: #e74c3c;
+    color: white;
+    text-align: center;
+    padding: 15px;
+}
+
+.ticket-body {
+    padding: 20px;
+    border-bottom: 2px dashed #ccc; /* Đường xé vé giả lập */
+}
+
+.movie-title {
+    font-size: 24px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    color: #000;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.label { font-size: 12px; color: #666; display: block; }
+.value { font-size: 18px; font-weight: bold; color: #000; }
+
+.ticket-footer {
+    padding: 20px;
+    text-align: center;
+    background: #f9f9f9;
+}
+
+/* --- QUAN TRỌNG: Cấu hình khi IN --- */
+@media print {
+    /* 1. Ẩn tất cả những gì không liên quan đến vé */
+    body * {
+        visibility: hidden;
+    }
+    
+    /* 2. Chỉ hiển thị vùng ticket-container */
+    #ticket-container, #ticket-container * {
+        visibility: visible;
+    }
+
+    /* 3. Đẩy vé lên góc trên cùng bên trái khi in */
+    #ticket-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%; /* Hoặc set cố định 80mm nếu in máy in nhiệt */
+        border: none;
+        box-shadow: none;
+    }
+
+    /* Ẩn nút "In Vé" khi đang in */
+    .no-print {
+        display: none !important;
+    }
+}

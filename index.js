@@ -4,6 +4,10 @@ var express = require('express');
 var app = express();
 const port = 5000;
 const dbUri ='mongodb://DoAnDienToanDamMay:admin123@ac-kyxrmyd-shard-00-01.wwvy5d3.mongodb.net:27017/trangtin?ssl=true&authSource=admin' ;
+const axios = require('axios');
+const CryptoJS = require('crypto-js');
+const moment = require('moment');
+const { v4: uuidv4 } = require('uuid');
 
 var mongoose = require('mongoose');
 var session = require('express-session');
@@ -62,7 +66,6 @@ app.use('/phongchieu', phongchieuRouter);
 app.use('/suatchieu', suatchieuRouter);
 app.use('/taikhoan', taikhoanRouter);
 app.use(express.static('public'));
-console.log("Database URI đang dùng là:", dbUri);
 app.listen(port, () => {
     console.log(`Server đang chạy ở port ${port}`);
 });
