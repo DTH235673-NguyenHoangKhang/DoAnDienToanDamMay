@@ -13,6 +13,7 @@ const crypto = require('crypto');
 // Import thêm các model còn thiếu
 const LoyaltyLedger = require('../models/loyaltyLedger');
 const TaiKhoan = require('../models/taikhoan');
+// Khai báo bên ngoài hàm để biến có phạm vi toàn cục trong script đó
 router.get('/', async (req, res) => {
     try {
         // 1. Xử lý chọn ngày (mặc định là ngày hiện tại)
@@ -151,8 +152,6 @@ router.post('/xuly-datve', async (req, res) => {
 
         // Log ra màn hình để kiểm tra trước khi redirect
         console.log("Thời gian gửi đi:", vnp_CreateDate);
-        console.log("--- URL GỬI SANG VNPAY ---");
-        console.log(finalUrl);
         let vnp_Params = {
             'vnp_Version': '2.1.0',
             'vnp_Command': 'pay',
@@ -184,7 +183,6 @@ router.post('/xuly-datve', async (req, res) => {
 
         // 5. Tạo URL cuối cùng và lưu Database
         const finalUrl = vnpUrl + '?' + qs.stringify(vnp_Params, { encode: false });
-
         const veMoi = new Ve({
             IdTaiKhoan: req.session.MaNguoiDung || null,
             SuatChieu: idSuatChieu,
