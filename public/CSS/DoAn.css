@@ -347,3 +347,34 @@ ul li {
         display: none !important;
     }
 }
+        /* CSS bổ sung để xử lý trạng thái ghế */
+        .seat {
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .seat.selected {
+            background-color: #2ecc71 !important;
+            color: white;
+            border-color: #27ae60;
+        }
+        .seat.occupied {
+            background-color: #95a5a6 !important;
+            cursor: not-allowed;
+            color: #bdc3c7;
+        }
+        /* Ghế đang bị người khác giữ */
+        .seat.being-held {
+            background-color: #f1c40f !important;
+            color: #856404;
+            cursor: not-allowed;
+            opacity: 0.7;
+            position: relative;
+        }
+        .seat.being-held::after {
+            content: "🔒";
+            position: absolute;
+            font-size: 10px;
+            top: -5px;
+            right: -5px;
+        }

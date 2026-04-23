@@ -1,183 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="/CSS/DoAn.css" />
-    <title>
-        <%= title%> - Quản lý rạp phim
-    </title>
+    <title><%= title %> - Quản lý rạp phim</title>
 </head>
-
 <body>
     <div id="khungtrang">
         <div id="header">
-            <img src="/images/banner.jpg" />
+            <img src="/images/banner.jpg" style="width: 100%;" />
         </div>
+
+        <%- include('navbar') %>
 
         <div class="card-body">
             <div class="cinema-container text-center">
-                <div class="screen mb-4" style="margin-top: 10px;">MÀN HÌNH</div>
+                <div class="screen mb-4" style="margin-top: 10px; background: #ddd; padding: 10px; border-radius: 5px;">MÀN HÌNH</div>
 
                 <div class="seats-layout">
                     <% let listHang=['A', 'B' , 'C' , 'D' , 'E' ]; %>
-                        <% listHang.forEach(function(hang) { %>
-                            <div class="seat-row d-flex justify-content-center mb-2">
-                                <span class="row-label me-3">
-                                    <%= hang %>
-                                </span>
-                                <% for(let i=1; i<=10; i++) { let maGhe=hang + i; let daDat=gheDaBan.includes(maGhe)
-                                    ? 'occupied' : '' ; %>
-                                    <div class="seat <%= daDat %>" data-seat="<%= maGhe %>">
-                                        <%= i %>
-                                    </div>
-                                    <% } %>
-                            </div>
-                            <% }); %>
+                    <% listHang.forEach(function(hang) { %>
+                        <div class="seat-row d-flex justify-content-center mb-2">
+                            <span class="row-label me-3 fw-bold"><%= hang %></span>
+                            <% for(let i=1; i<=10; i++) { 
+                                let maGhe = hang + i; 
+                                let daDat = gheDaBan.includes(maGhe) ? 'occupied' : ''; 
+                            %>
+                                <div class="seat border p-2 m-1 text-center <%= daDat %>" 
+                                     data-seat="<%= maGhe %>" 
+                                     style="width: 40px; height: 40px; border-radius: 5px;">
+                                    <%= i %>
+                                </div>
+                            <% } %>
+                        </div>
+                    <% }); %>
                 </div>
             </div>
 
             <div class="booking-summary mt-4 p-3 border-top text-center">
                 <h5>Thông tin đặt vé</h5>
                 <p>Ghế đã chọn: <span id="selected-seats-list" class="fw-bold text-danger">Chưa chọn</span></p>
-                <p>Tổng tiền gốc: <span id="original-price" class="text-decoration-line-through text-muted">0</span> VNĐ
-                </p>
+                <p id="p-original" style="display: none;">Tổng tiền gốc: <span id="original-price" class="text-decoration-line-through text-muted">0</span> VNĐ</p>
                 <p>Thành tiền: <span id="total-price" class="fw-bold text-primary fs-4">0</span> VNĐ</p>
 
-                <div class="loyalty-box mb-3 p-3 border rounded bg-light text-start">
+                <div class="loyalty-box mb-3 p-3 border rounded bg-light text-start mx-auto" style="max-width: 500px;">
                     <label class="fw-bold"><i class="bi bi-coin text-warning"></i> Blockchain Loyalty</label>
                     <div class="d-flex justify-content-between align-items-center mt-2">
-                        <span>Số dư: <strong id="user-balance">
-                                <%= taikhoan.DiemLoyalty || 0 %>
-                            </strong> Token</span>
+                        <span>Số dư: <strong id="user-balance"><%= taikhoan.DiemLoyalty || 0 %></strong> Token</span>
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="use-points" name="usePoints"
-                                data-points="<%= taikhoan.DiemLoyalty || 0 %>">
+                            <input class="form-check-input" type="checkbox" id="use-points" data-points="<%= taikhoan.DiemLoyalty || 0 %>">
                             <label class="form-check-label" for="use-points">Dùng điểm (1 Token = 1.000đ)</label>
                         </div>
                     </div>
                     <small id="loyalty-msg" class="text-success" style="display: none;"></small>
                 </div>
 
-                <form action="/xuly-datve" method="POST" id="formDatVe">
-                    <input type="hidden" name="idSuatChieu" value="<%= suatChieu._id %>">
+                <form action="/xuly-datve" method="POST" id="formDatVe" style="max-width: 500px; margin: 0 auto;">
+                    <input type="hidden" name="idSuatChieu" id="idSuatChieu" value="<%= suatChieu._id %>">
                     <input type="hidden" name="danhSachGhe" id="inputGhe">
                     <input type="hidden" name="tongTien" id="inputTien">
                     <input type="hidden" name="diemSuDung" id="inputDiemSuDung" value="0">
 
-                    <button type="submit" id="btn-pay" class="btn btn-success btn-lg w-100" disabled>
-                        THANH TOÁN
-                    </button>
+                    <button type="submit" id="btn-pay" class="btn btn-success btn-lg w-100" disabled>THANH TOÁN</button>
                 </form>
             </div>
         </div>
-        <div id="footer">
-            <%- include('footer') %>
-        </div>
 
-        <%- include('javascript') %>
+        <%- include('footer') %>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        const socket = io();
+        const suatChieuId = document.getElementById('idSuatChieu').value;
         const seats = document.querySelectorAll('.seat:not(.occupied)');
         const selectedSeatsList = document.getElementById('selected-seats-list');
         const totalPriceElement = document.getElementById('total-price');
         const originalPriceElement = document.getElementById('original-price');
+        const pOriginal = document.getElementById('p-original');
         const btnPay = document.getElementById('btn-pay');
         const usePointsSwitch = document.getElementById('use-points');
         const loyaltyMsg = document.getElementById('loyalty-msg');
-
         const inputGhe = document.getElementById('inputGhe');
         const inputTien = document.getElementById('inputTien');
         const inputDiemSuDung = document.getElementById('inputDiemSuDung');
 
         let selectedSeats = [];
         const GIA_VE = 65000;
-        const DIEM_QUY_DOI = 1000; // 1 điểm = 1000đ
+        const DIEM_QUY_DOI = 1000;
 
+        // 1. KẾT NỐI REALTIME
+        socket.emit('join-cinema-room', suatChieuId);
+
+        socket.on('seat-is-being-held', (maGhe) => {
+            const seat = document.querySelector(`[data-seat="${maGhe}"]`);
+            if (seat) seat.classList.add('being-held');
+        });
+
+        socket.on('seat-is-released', (maGhe) => {
+            const seat = document.querySelector(`[data-seat="${maGhe}"]`);
+            if (seat) seat.classList.remove('being-held');
+        });
+
+        // 2. LOGIC TÍNH TIỀN
         function updateUI() {
             let soLuong = selectedSeats.length;
             let tongTienGoc = soLuong * GIA_VE;
             let diemHienCo = parseInt(usePointsSwitch.getAttribute('data-points')) || 0;
-
             let thanhTien = tongTienGoc;
             let diemSeDung = 0;
 
             if (usePointsSwitch.checked && soLuong > 0) {
-                // 1. Tính số điểm tối đa cần dùng để vé về 0đ
-                // Ví dụ: Vé 65.000đ -> cần 65 điểm. Vé 120.000đ -> cần 120 điểm.
-                let diemCanThietDeMienPhi = Math.ceil(tongTienGoc / DIEM_QUY_DOI);
+                let diemCanThiet = Math.ceil(tongTienGoc / DIEM_QUY_DOI);
+                diemSeDung = Math.min(diemHienCo, diemCanThiet);
+                thanhTien = tongTienGoc - (diemSeDung * DIEM_QUY_DOI);
 
-                // 2. Ràng buộc: Nếu có nhiều điểm hơn mức cần thiết, chỉ dùng đủ mức cần thiết
-                if (diemHienCo >= diemCanThietDeMienPhi) {
-                    diemSeDung = diemCanThietDeMienPhi;
-                    thanhTien = 0; // Vé được miễn phí hoàn toàn
-                } else {
-                    // Nếu không đủ điểm để miễn phí, dùng hết số điểm đang có
-                    diemSeDung = diemHienCo;
-                    thanhTien = tongTienGoc - (diemSeDung * DIEM_QUY_DOI);
-                }
-
-                // Hiển thị thông báo số dư còn lại sau khi dùng
-                let soDuConLai = diemHienCo - diemSeDung;
-                loyaltyMsg.innerHTML = `Sử dụng <b>${diemSeDung}</b> điểm. Giảm <b>${(diemSeDung * DIEM_QUY_DOI).toLocaleString()}đ</b>.<br>` +
-                    `<small class="text-muted">Số dư còn lại sau khi đặt: ${soDuConLai} điểm (dùng cho lần sau).</small>`;
+                loyaltyMsg.innerHTML = `Dùng <b>${diemSeDung}</b> điểm. Giảm <b>${(diemSeDung * DIEM_QUY_DOI).toLocaleString()}đ</b>.`;
                 loyaltyMsg.style.display = 'block';
-                originalPriceElement.parentElement.style.display = 'block';
+                pOriginal.style.display = 'block';
             } else {
                 loyaltyMsg.style.display = 'none';
-                originalPriceElement.parentElement.style.display = 'none';
+                pOriginal.style.display = 'none';
             }
 
-            // Cập nhật hiển thị tiền và danh sách ghế
             selectedSeatsList.innerText = soLuong > 0 ? selectedSeats.join(', ') : 'Chưa chọn';
-            originalPriceElement.innerText = tongTienGoc.toLocaleString('vi-VN');
-            totalPriceElement.innerText = thanhTien.toLocaleString('vi-VN');
+            originalPriceElement.innerText = tongTienGoc.toLocaleString();
+            totalPriceElement.innerText = thanhTien.toLocaleString();
 
-            // Gán vào hidden inputs để gửi về Server
             inputGhe.value = JSON.stringify(selectedSeats);
             inputTien.value = thanhTien;
-            inputDiemSuDung.value = diemSeDung; // Chỉ gửi số điểm thực tế sẽ bị trừ
-
+            inputDiemSuDung.value = diemSeDung;
             btnPay.disabled = soLuong === 0;
         }
-        // Sự kiện click ghế
+
+        // 3. SỰ KIỆN CLICK GHẾ
         seats.forEach(seat => {
             seat.addEventListener('click', () => {
-                const seatId = seat.getAttribute('data-seat');
+                const maGhe = seat.getAttribute('data-seat');
+                
+                if (seat.classList.contains('being-held') || seat.classList.contains('occupied')) return;
+
                 if (seat.classList.contains('selected')) {
                     seat.classList.remove('selected');
-                    selectedSeats = selectedSeats.filter(s => s !== seatId);
+                    selectedSeats = selectedSeats.filter(s => s !== maGhe);
+                    socket.emit('client-release-seat', { suatChieuId, maGhe });
                 } else {
                     seat.classList.add('selected');
-                    selectedSeats.push(seatId);
+                    selectedSeats.push(maGhe);
+                    socket.emit('client-hold-seat', { suatChieuId, maGhe });
                 }
                 updateUI();
             });
         });
 
-        // Sự kiện bật/tắt dùng điểm
         usePointsSwitch.addEventListener('change', updateUI);
-        document.getElementById('formDatVe').addEventListener('submit', function(e) {
-    // Đảm bảo lấy giá trị mới nhất từ UI trước khi gửi
-    const diemHienCo = parseInt(document.getElementById('use-points').getAttribute('data-points')) || 0;
-    const isChecked = document.getElementById('use-points').checked;
-    const tongTienGoc = selectedSeats.length * GIA_VE;
-
-    if (isChecked) {
-        let diemCanThiet = Math.ceil(tongTienGoc / DIEM_QUY_DOI);
-        // Nếu điểm dư thì chỉ lấy đủ dùng, nếu thiếu thì lấy hết
-        document.getElementById('inputDiemSuDung').value = (diemHienCo >= diemCanThiet) ? diemCanThiet : diemHienCo;
-    } else {
-        document.getElementById('inputDiemSuDung').value = 0;
-    }
-    
-    console.log("Dữ liệu gửi về Server - Điểm sử dụng:", document.getElementById('inputDiemSuDung').value);
-});
     </script>
 </body>
-
 </html>
