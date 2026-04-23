@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var DinhDang = require('../models/dinhdang');
+var Phim = require('../models/phim');
 
 // GET: Danh sách 
 router.get('/', async (req, res) => {
@@ -86,6 +87,11 @@ router.post('/sua/:id', async (req, res) => {
 // GET: Xóa 
 router.get('/xoa/:id', async (req, res) => {
     var id = req.params.id;
+    const phimCount = await Phim.countDocuments({ DinhDang: id });
+
+    if (phimCount > 0) {
+        return res.status(400).send("Không thể xóa định dạng này vì còn phim liên quan.");
+    }
     await DinhDang.findByIdAndDelete(id);
     res.redirect('/dinhdang');
 });

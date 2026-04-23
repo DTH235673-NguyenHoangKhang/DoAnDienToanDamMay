@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var PhongChieu = require('../models/phongchieu');
+var SuatChieu = require('../models/suatchieu');
 // GET: Danh sách 
 router.get('/', async (req, res) => {
     var pc=await PhongChieu.find();
@@ -12,7 +13,8 @@ router.get('/', async (req, res) => {
 // GET: Thêm 
 router.get('/them', async (req, res) => {
     res.render('phongchieu_them', {
-        title: 'Thêm phòng chiếu'
+        title: 'Thêm phòng chiếu',
+        error: null
     });
 });
 // POST: Thêm 
@@ -50,6 +52,11 @@ router.post('/sua/:id', async (req, res) => {
 // GET: Xóa 
 router.get('/xoa/:id', async (req, res) => {
     var id=req.params.id;
+    const suatChieuCount = await SuatChieu.countDocuments({ PhongChieu: id });
+
+    if (suatChieuCount > 0) {
+        return res.status(400).send("Không thể xóa phòng chiếu này vì còn suất chiếu liên quan.");
+    }
     await PhongChieu.findByIdAndDelete(id);
     res.redirect('/phongchieu');
 });

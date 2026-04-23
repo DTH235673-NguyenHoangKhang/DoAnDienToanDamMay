@@ -68,7 +68,7 @@ router.get('/timkiem', async (req, res) => {
         const homNay = new Date().toLocaleDateString('sv-SE');
 
         // 2. Tìm phim theo từ khóa
-        const phimTimKiem = await Phim.find({ TenPhim: new RegExp(tukhoa, 'i') });
+        const phimTimKiem = await Phim.find({ TenPhim: new RegExp(tukhoa, 'i') }).populate('TheLoai').populate('DinhDang');
 
         // 3. Lấy danh sách ID của các phim tìm được
         const idsPhim = phimTimKiem.map(p => p._id);
@@ -143,14 +143,21 @@ router.post('/xuly-datve',kiemTraDangNhap, async (req, res) => {
         const vnp_ReturnUrl = 'http://localhost:5000/vnpay_return';
         const { idSuatChieu, danhSachGhe, tongTien, diemSuDung } = req.body;
         const orderId = moment().format('DDHHmmss');
+        let finalDiemSuDung = parseInt(diemSuDung) || 0;
+        const total = parseInt(tongTien);
 
+        // --- LOGIC MỚI: Giới hạn tối đa 50% tổng tiền ---
+        const maxAllowedDiem = Math.floor(total * 0.5); 
+        if (finalDiemSuDung > maxAllowedDiem) {
+            finalDiemSuDung = maxAllowedDiem;
+        }
         const veMoi = new Ve({
             Taikhoan: req.session.MaNguoiDung || null,
             SuatChieu: idSuatChieu,
             DanhSachGhe: JSON.parse(danhSachGhe),
             TongTien: parseInt(tongTien),
             MaGiaoDich: orderId,
-            LoyaltySD: parseInt(diemSuDung) || 0,
+            LoyaltySD: finalDiemSuDung,
             TrangThai: 0
         });
         await veMoi.save();
@@ -241,7 +248,8 @@ router.get('/vnpay_return', kiemTraDangNhap,async (req, res) => {
                 ).populate({
                     path: 'SuatChieu',
                     populate: [{ path: 'Phim' }, { path: 'PhongChieu' }]
-                });                 // --- XỬ LÝ BLOCKCHAIN: TRỪ ĐIỂM SỬ DỤNG (REDEEM) ---
+                });                 
+                // --- XỬ LÝ BLOCKCHAIN: TRỪ ĐIỂM SỬ DỤNG (REDEEM) ---
                 if (ve.LoyaltySD > 0) {
                     const lastBlockRedeem = await LoyaltyLedger.findOne({ TaiKhoan: ve.Taikhoan }).sort({ Timestamp: -1 });
                     const prevHashRedeem = lastBlockRedeem ? lastBlockRedeem.Hash : "0".repeat(64);
@@ -274,13 +282,14 @@ router.get('/vnpay_return', kiemTraDangNhap,async (req, res) => {
                 const currentHash = crypto.createHash('sha256')
                     .update(previousHash + ve.Taikhoan + diemCong + "REWARD" + Date.now())
                     .digest('hex');
-
+                const now = new Date(); 
                 await new LoyaltyLedger({
                     TaiKhoan: ve.Taikhoan,
                     SoDiem: diemCong,
                     HanhDong: "REWARD",
                     PreviousHash: previousHash,
-                    Hash: currentHash
+                    Hash: currentHash,
+                    Timestamp: now
                 }).save();
 
                 await TaiKhoan.findByIdAndUpdate(ve.Taikhoan, {

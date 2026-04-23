@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var TheLoai = require('../models/theloai');
+var Phim = require('../models/phim');
 
 // GET: Danh sách 
 router.get('/', async (req, res) => {
@@ -97,6 +98,12 @@ router.post('/sua/:id', async (req, res) => {
 router.get('/xoa/:id', async (req, res) => {
     try {
         var id = req.params.id;
+        const phimCount = await Phim.countDocuments({ TheLoai: id });
+
+        if (phimCount > 0) {
+            return res.status(400).send("Không thể xóa thể loại này vì còn phim liên quan.");
+        }
+
         await TheLoai.findByIdAndDelete(id);
         res.redirect('/theloai');
     } catch (err) {

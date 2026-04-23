@@ -69,6 +69,11 @@ router.post('/sua/:id', async (req, res) => {
 // GET: Xóa 
 router.get('/xoa/:id', async (req, res) => {
     var id = req.params.id;
+    const veCount = await Ve.countDocuments({ Taikhoan: id });
+
+    if (veCount > 0) {
+        return res.status(400).send("Không thể xóa tài khoản này vì còn vé liên quan.");
+    }
     await TaiKhoan.findByIdAndDelete(id);
     res.redirect('/taikhoan');
 });

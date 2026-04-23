@@ -62,7 +62,7 @@
                                     <div class="card-body">
                                         <h6 class="fw-bold d-flex align-items-center gap-2">
                                             <% if (item.DinhDang) { %>
-                                                <% let label=item.DinhDang.TenDinhDang; let bgClass="bg-secondary" ; if
+                                                <% let label=item.DinhDang?.TenDinhDang; let bgClass="bg-secondary" ; if
                                                     (label.includes("T18")) bgClass="bg-danger" ; else if
                                                     (label.includes("T16")) bgClass="bg-warning text-dark" ; else if
                                                     (label==="P" ) bgClass="bg-success" ; %>

@@ -3,6 +3,7 @@ var router = express.Router();
 var Phim = require('../models/phim');
 var TheLoai = require('../models/theloai');
 var DinhDang = require('../models/dinhdang');
+var SuatChieu = require('../models/suatchieu');
 
 const multer = require('multer');
 
@@ -151,6 +152,11 @@ router.post('/sua/:id', upload.single('poster'), async (req, res) => {
 // GET: Xóa 
 router.get('/xoa/:id', async (req, res) => {
     var id = req.params.id;
+    const suatChieuCount = await SuatChieu.countDocuments({ Phim: id });
+
+    if (suatChieuCount > 0) {
+        return res.status(400).send("Không thể xóa phim này vì còn suất chiếu liên quan.");
+    }
     await Phim.findByIdAndDelete(id);
     res.redirect('/phim');
 });

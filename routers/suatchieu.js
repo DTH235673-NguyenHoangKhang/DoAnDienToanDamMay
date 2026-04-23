@@ -3,6 +3,7 @@ var router = express.Router();
 var SuatChieu = require('../models/suatchieu');
 var Phim = require('../models/phim');
 var PhongChieu = require('../models/phongchieu');
+var ve = require('../models/ve');
 // GET: Danh sách 
 router.get('/', async (req, res) => {
     try {
@@ -193,6 +194,11 @@ router.post('/sua/:id', async (req, res) => {
 // GET: Xóa 
 router.get('/xoa/:id', async (req, res) => {
     var id=req.params.id;
+    const veCount = await ve.countDocuments({ SuatChieu: id });
+
+    if (veCount > 0) {
+        return res.status(400).send("Không thể xóa suất chiếu này vì còn vé liên quan.");
+    }
     await SuatChieu.findByIdAndDelete(id);
     res.redirect('/suatchieu');
 });

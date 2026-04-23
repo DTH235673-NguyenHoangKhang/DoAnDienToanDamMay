@@ -104,7 +104,7 @@
             if (seat) seat.classList.remove('being-held');
         });
 
-        // 2. LOGIC TÍNH TIỀN
+// 2. LOGIC TÍNH TIỀN
         function updateUI() {
             let soLuong = selectedSeats.length;
             let tongTienGoc = soLuong * GIA_VE;
@@ -113,11 +113,22 @@
             let diemSeDung = 0;
 
             if (usePointsSwitch.checked && soLuong > 0) {
+                // --- LOGIC MỚI: TÍNH GIỚI HẠN 50% ---
+                // Số tiền tối đa có thể trừ là 50% tiền gốc
+                let soTienGiamToiDa = Math.floor(tongTienGoc * 0.5);
+                
+                // Quy đổi số tiền giảm tối đa này ra điểm (ví dụ: giảm 32.500đ cần 32.5 điểm)
+                let diemToiDaDuocDung = Math.floor(soTienGiamToiDa / DIEM_QUY_DOI);
+                
+                // Số điểm cần thiết để thanh toán toàn bộ (nhưng giờ sẽ bị chặn bởi diemToiDaDuocDung)
                 let diemCanThiet = Math.ceil(tongTienGoc / DIEM_QUY_DOI);
-                diemSeDung = Math.min(diemHienCo, diemCanThiet);
+                
+                // diemSeDung = Giá trị nhỏ nhất trong 3 cái: (Điểm đang có, Điểm cần thiết, Điểm tối đa 50%)
+                diemSeDung = Math.min(diemHienCo, diemCanThiet, diemToiDaDuocDung);
+                
                 thanhTien = tongTienGoc - (diemSeDung * DIEM_QUY_DOI);
 
-                loyaltyMsg.innerHTML = `Dùng <b>${diemSeDung}</b> điểm. Giảm <b>${(diemSeDung * DIEM_QUY_DOI).toLocaleString()}đ</b>.`;
+                loyaltyMsg.innerHTML = `Dùng <b>${diemSeDung}</b> điểm. Giảm <b>${(diemSeDung * DIEM_QUY_DOI).toLocaleString()}đ</b> (Tối đa 50%).`;
                 loyaltyMsg.style.display = 'block';
                 pOriginal.style.display = 'block';
             } else {
@@ -134,7 +145,6 @@
             inputDiemSuDung.value = diemSeDung;
             btnPay.disabled = soLuong === 0;
         }
-
         // 3. SỰ KIỆN CLICK GHẾ
         seats.forEach(seat => {
             seat.addEventListener('click', () => {
