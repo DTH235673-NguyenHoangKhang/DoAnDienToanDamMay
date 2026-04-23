@@ -9,6 +9,7 @@
 					<li class="dropdown">
 						<a href="#"><i class="bi bi-gear-wide-connected"></i> Quản lý</a>
 						<ul class="submenu">
+							<li><a href="/verify-blockchain">Loyalty</a></li>
 							<li><a href="/taikhoan">Người dùng</a></li>
 							<li><a href="/phim">Phim</a></li>
 							<li><a href="/theloai">Thể loại</a></li>
@@ -26,6 +27,7 @@
 									<%= session.HoVaTen %>
 								</a>
 								<ul class="dropdown-menu">
+									<li><a class="dropdown-item" href="/vecuatoi"><i class="bi bi-ticket"></i> Vé của tôi</a></li>
 									<li><a class="dropdown-item" href="/lichsuve"><i class="bi bi-file-earmark-plus"></i> Lịch sử mua vé</a></li>
 									<li><a class="dropdown-item"><i class="bi bi-journal-bookmark"></i> Điểm tích lũy: <%= taikhoan.DiemLoyalty %></a></li>
 									<li>

@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var bcrypt = require('bcryptjs');
 var TaiKhoan = require('../models/taikhoan');
+var Ve = require('../models/ve');
 
 // GET: Tài khoản
 router.get('/', async (req, res) => {
@@ -70,6 +71,27 @@ router.get('/xoa/:id', async (req, res) => {
     var id = req.params.id;
     await TaiKhoan.findByIdAndDelete(id);
     res.redirect('/taikhoan');
+});
+router.get('/lichsuve/:id', async (req, res) => {
+    try {
+        const danhSachVe = await Ve.find({ Taikhoan: req.params.id, TrangThai: 1 })
+            .populate({
+                path: 'SuatChieu', // Tên field trong Model Ve
+                populate: [
+                    { path: 'Phim', select: 'TenPhim' }, // Lấy tên phim từ Model Phim
+                    { path: 'PhongChieu', select: 'TenPhongChieu' } // Lấy tên phòng từ Model Phong
+                ]
+            })
+            .sort({ NgayDat: -1 });
+        res.render('lichsuve', {
+            title: 'Lịch sử mua vé',
+            ve: danhSachVe,
+            taikhoan: await TaiKhoan.findById(req.params.id)
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Lỗi server");
+    }
 });
 
 module.exports = router;

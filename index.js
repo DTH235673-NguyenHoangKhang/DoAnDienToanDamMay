@@ -1,3 +1,4 @@
+require('dotenv').config();
 var express = require('express');
 var app = express();
 const port = 5000;
@@ -32,7 +33,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 30 * 24 * 60 * 60 * 1000 // Hết hạn sau 30 ngày
+        maxAge: 30 * 24 * 60 * 60 * 1000// Hết hạn sau 30 ngày
     }
 }));
 app.use((req, res, next) => {

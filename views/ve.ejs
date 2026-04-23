@@ -15,12 +15,9 @@
 <body>
 
     <div class="text-center mb-4 no-print">
-        <button onclick="window.print()" class="btn btn-danger btn-lg">
-            <i class="bi bi-printer"></i> In Vé Ngay
-        </button>
         <a href="/" class="btn btn-outline-secondary ms-2">
-        <i class="fas fa-home"></i> Quay về trang chủ
-    </a>
+            <i class="fas fa-home"></i> Quay về trang chủ
+        </a>
     </div>
 
     <div id="ticket-container" class="ticket-card">
@@ -33,7 +30,7 @@
             <h1 class="movie-title">
                 <%= phim.TenPhim %>
             </h1>
-                            
+
             <div class="info-row">
                 <div class="info-item">
                     <span class="label">NGÀY</span>
@@ -60,6 +57,11 @@
                     <span class="label">GHẾ</span>
                     <span class="value">
                         <%= ve.DanhSachGhe.join(', ') %></span>
+            </div>
+                <div class="info-item">
+                    <span class="label">Tổng tiền</span>
+                    <span class="value">
+                        <%= ve.TongTien%></span>
             </div>
         </div>
     </div>
