@@ -369,7 +369,7 @@ router.get('/thongtinnguoidung',kiemTraDangNhap, async (req, res) => {
 router.post('/thongtinnguoidung', kiemTraDangNhap,async (req, res) => {
     try {
         const maND = req.session.MaNguoiDung;
-        const { HoVaTen, Email, MatKhau, XacNhanMatKhau } = req.body;
+        const { HoVaTen, Email, TenDangNhap, MatKhau, XacNhanMatKhau } = req.body;
         const taikhoan = await TaiKhoan.findById(maND);
 
         if (!taikhoan) {
@@ -392,6 +392,7 @@ router.post('/thongtinnguoidung', kiemTraDangNhap,async (req, res) => {
         // Cập nhật thông tin khác
         var salt = bcrypt.genSaltSync(10);
         taikhoan.HoVaTen = HoVaTen;
+        taikhoan.TenDangNhap = TenDangNhap; // Cập nhật lại tên đăng nhập
         taikhoan.Email = Email;
         taikhoan.MatKhau = bcrypt.hashSync(MatKhau, salt);
         await TaiKhoan.findByIdAndUpdate(maND, taikhoan);
