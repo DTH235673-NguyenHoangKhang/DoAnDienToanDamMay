@@ -1,25 +1,21 @@
 var express = require('express');
 var router = express.Router();
 var Phim = require('../models/phim');
-var SuatChieu = require('../models/suatchieu'); // Giả sử bạn có model này
+var SuatChieu = require('../models/suatchieu'); 
 var Ve = require('../models/ve');
-var PhongChieu = require('../models/phongchieu'); // Giả sử bạn có model này
+var PhongChieu = require('../models/phongchieu'); 
 const axios = require('axios');
 const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
 const qs = require('qs');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-// Import thêm các model còn thiếu
 const LoyaltyLedger = require('../models/loyaltyLedger');
 const TaiKhoan = require('../models/taikhoan');
-// Khai báo bên ngoài hàm để biến có phạm vi toàn cục trong script đó
 router.get('/', async (req, res) => {
     try {
-        // 1. Xử lý chọn ngày (mặc định là ngày hiện tại)
         let ngayChon = req.query.ngay || new Date().toISOString().split('T')[0];
 
-        // 2. Tạo danh sách 7 ngày để hiện thanh cuộn
         let dsNgay = [];
         for (let i = 0; i < 7; i++) {
             let d = new Date();
@@ -27,11 +23,8 @@ router.get('/', async (req, res) => {
             dsNgay.push(d.toISOString().split('T')[0]);
         }
 
-        // 3. Lấy danh sách phim
         const phim = await Phim.find().populate('TheLoai').populate('DinhDang');
 
-        // 4. Lấy suất chiếu của ngày đã chọn và populate thông tin phim
-        // Giả sử model SuatChieu có trường 'NgayChieu' và 'IdPhim'
         const suatChieu = await SuatChieu.find({ NgayChieu: ngayChon }).populate('Phim');
         res.render('index', {
             title: 'Lịch Chiếu',
@@ -64,29 +57,23 @@ router.get('/timkiem', async (req, res) => {
     try {
         const tukhoa = req.query.tukhoa;
 
-        // 1. Lấy ngày hôm nay định dạng YYYY-MM-DD
         const homNay = new Date().toLocaleDateString('sv-SE');
 
-        // 2. Tìm phim theo từ khóa
         const phimTimKiem = await Phim.find({ TenPhim: new RegExp(tukhoa, 'i') }).populate('TheLoai').populate('DinhDang');
 
-        // 3. Lấy danh sách ID của các phim tìm được
         const idsPhim = phimTimKiem.map(p => p._id);
 
-        // 4. Tìm các suất chiếu của những phim này trong ngày hôm nay
-        // Lưu ý: Trường 'Phim' phải khớp với tên field trong Model SuatChieu của bạn
         const suatChieuTimKiem = await SuatChieu.find({
             Phim: { $in: idsPhim },
             NgayChieu: homNay
         });
 
-        // 5. Render lại trang index
         res.render('index', {
             title: 'Kết quả tìm kiếm: ' + tukhoa,
             phim: phimTimKiem,
             dsNgay: [homNay],
             ngayChon: homNay,
-            suatChieu: suatChieuTimKiem, // Thay [] bằng kết quả vừa tìm được
+            suatChieu: suatChieuTimKiem, 
             tuKhoa: tukhoa,
             session: req.session || {}
         });
@@ -97,11 +84,8 @@ router.get('/timkiem', async (req, res) => {
 // Hàm kiểm tra xem người dùng đã đăng nhập chưa
 function kiemTraDangNhap(req, res, next) {
     if (req.session && req.session.MaNguoiDung) {
-        // Nếu đã có session user, cho phép đi tiếp vào trang đặt vé
         return next();
     } else {
-        // Nếu chưa đăng nhập, chuyển hướng về trang đăng nhập
-        // Có thể kèm theo thông báo hoặc lưu url để quay lại sau khi login
         res.redirect('/dangnhap');
     }
 }
@@ -111,10 +95,8 @@ router.get('/datve/:idSuatChieu', kiemTraDangNhap, async (req, res) => {
         const idSC = req.params.idSuatChieu;
         const taikhoan = await TaiKhoan.findById(req.session.MaNguoiDung);
 
-        // Lấy thông tin suất chiếu và phim
         const suatChieu = await SuatChieu.findById(idSC).populate('Phim');
 
-        // Lấy danh sách ghế đã bán
         const cacVeDaDat = await Ve.find({ SuatChieu: idSC, TrangThai: 1 });
         let gheDaBan = [];
         cacVeDaDat.forEach(ve => {
@@ -146,7 +128,6 @@ router.post('/xuly-datve', kiemTraDangNhap, async (req, res) => {
         let finalDiemSuDung = parseInt(diemSuDung) || 0;
         const total = parseInt(tongTien);
 
-        // --- LOGIC MỚI: Giới hạn tối đa 50% tổng tiền ---
         const maxAllowedDiem = Math.floor(total * 0.5);
         if (finalDiemSuDung > maxAllowedDiem) {
             finalDiemSuDung = maxAllowedDiem;
@@ -182,7 +163,6 @@ router.post('/xuly-datve', kiemTraDangNhap, async (req, res) => {
         vnp_Params['vnp_IpAddr'] = ipAddr;
         vnp_Params['vnp_CreateDate'] = createDate;
 
-        // Bước 1: Sắp xếp tham số theo alphabet (Quan trọng)
         vnp_Params = Object.keys(vnp_Params)
             .sort()
             .reduce((obj, key) => {
@@ -190,15 +170,12 @@ router.post('/xuly-datve', kiemTraDangNhap, async (req, res) => {
                 return obj;
             }, {});
 
-        // Bước 2: Tạo chuỗi băm (Sử dụng qs với tùy chọn encode: false vì ta đã encode ở trên)
         const signData = qs.stringify(vnp_Params, { encode: false });
 
-        // Bước 3: Tạo chữ ký HMAC-SHA512
         const hmac = crypto.createHmac("sha512", vnp_HashSecret);
         const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
         vnp_Params['vnp_SecureHash'] = signed;
 
-        // Bước 4: Tạo URL cuối cùng
         const paymentUrl = vnp_Url + '?' + qs.stringify(vnp_Params, { encode: false });
 
         res.redirect(paymentUrl);
@@ -499,7 +476,6 @@ router.get('/chitietve/:idVe', kiemTraDangNhap, async (req, res) => {
 // Route: Kiểm tra tính toàn vẹn của hệ thống Blockchain Loyalty
 router.get('/verify-blockchain', kiemTraDangNhap, async (req, res) => {
     try {
-        // 1. Lấy tất cả tài khoản và toàn bộ sổ cái
         const [allUsers, allLedger] = await Promise.all([
             TaiKhoan.find(),
             LoyaltyLedger.find().sort({ Timestamp: 1 })
@@ -509,7 +485,6 @@ router.get('/verify-blockchain', kiemTraDangNhap, async (req, res) => {
         let globalValid = true;
         let globalBalanceMatch = true;
 
-        // 2. Duyệt qua từng người dùng để đối soát
         allUsers.forEach(user => {
             // Lọc các block thuộc về người dùng này
             const userLedger = allLedger.filter(block => 
@@ -521,8 +496,6 @@ router.get('/verify-blockchain', kiemTraDangNhap, async (req, res) => {
 
             for (let i = 0; i < userLedger.length; i++) {
                 const currentBlock = userLedger[i];
-                // Lưu ý: Trong logic chuỗi chung hoặc chuỗi riêng, 
-                // PreviousHash thường dựa trên block trước đó trong mảng đã sort
                 const previousHash = i === 0 ? "0".repeat(64) : userLedger[i - 1].Hash;
 
                 // Tính toán mã Hash để kiểm tra tính toàn vẹn

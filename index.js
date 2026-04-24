@@ -1,16 +1,11 @@
 var express = require('express');
 var app = express();
 const port = 5000;
-const http = require('http'); // 1. Thêm thư viện http
-const server = http.createServer(app); // 2. Tạo server từ app
+const http = require('http'); 
+const server = http.createServer(app); 
 
 const dbUri = 'mongodb://DoAnDienToanDamMay:admin123@ac-kyxrmyd-shard-00-01.wwvy5d3.mongodb.net:27017/trangtin?ssl=true&authSource=admin';
-const axios = require('axios');
-const CryptoJS = require('crypto-js');
-const moment = require('moment');
-const { v4: uuidv4 } = require('uuid');
 
-// 3. Khởi tạo Socket.io thông qua server (không phải app)
 const io = require('socket.io')(server); 
 
 var mongoose = require('mongoose');
@@ -86,7 +81,6 @@ app.use('/phongchieu', phongchieuRouter);
 app.use('/suatchieu', suatchieuRouter);
 app.use('/taikhoan', taikhoanRouter);
 
-// 4. SỬA app.listen THÀNH server.listen
 server.listen(port, () => {
     console.log(`Server đang chạy ở port ${port}`);
 });
