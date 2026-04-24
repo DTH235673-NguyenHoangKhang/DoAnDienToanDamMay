@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 var loyaltyLedgerSchema = new mongoose.Schema({
   TaiKhoan: { type: mongoose.Schema.Types.ObjectId, ref: 'TaiKhoan' },
   SoDiem: Number,
+  DiemHienTai: Number, // Điểm sau khi thực hiện hành động
   HanhDong: String, // "REWARD" (Cộng) hoặc "REDEEM" (Dùng)
   Timestamp: { type: Date, default: Date.now },
   PreviousHash: String, // Mã băm của bản ghi trước đó

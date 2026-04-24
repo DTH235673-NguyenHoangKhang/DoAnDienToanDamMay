@@ -135,7 +135,7 @@ router.get('/datve/:idSuatChieu', kiemTraDangNhap, async (req, res) => {
     }
 });
 // --- 2. Xử lý lưu vé khi nhấn Thanh toán ---
-router.post('/xuly-datve',kiemTraDangNhap, async (req, res) => {
+router.post('/xuly-datve', kiemTraDangNhap, async (req, res) => {
     try {
         const vnp_TmnCode = 'M6PCH80J';
         const vnp_HashSecret = '0F9AZURX5L7IHNOBFZD69V5RK6M2Z8B1';
@@ -147,7 +147,7 @@ router.post('/xuly-datve',kiemTraDangNhap, async (req, res) => {
         const total = parseInt(tongTien);
 
         // --- LOGIC MỚI: Giới hạn tối đa 50% tổng tiền ---
-        const maxAllowedDiem = Math.floor(total * 0.5); 
+        const maxAllowedDiem = Math.floor(total * 0.5);
         if (finalDiemSuDung > maxAllowedDiem) {
             finalDiemSuDung = maxAllowedDiem;
         }
@@ -208,7 +208,7 @@ router.post('/xuly-datve',kiemTraDangNhap, async (req, res) => {
     }
 });
 // Route xử lý kết quả trả về từ VNPAY (GET: /vnpay_return)
-router.get('/vnpay_return', kiemTraDangNhap,async (req, res) => {
+router.get('/vnpay_return', kiemTraDangNhap, async (req, res) => {
     try {
         let vnp_Params = req.query;
         let secureHash = vnp_Params['vnp_SecureHash'];
@@ -248,55 +248,65 @@ router.get('/vnpay_return', kiemTraDangNhap,async (req, res) => {
                 ).populate({
                     path: 'SuatChieu',
                     populate: [{ path: 'Phim' }, { path: 'PhongChieu' }]
-                });                 
-                // --- XỬ LÝ BLOCKCHAIN: TRỪ ĐIỂM SỬ DỤNG (REDEEM) ---
-                if (ve.LoyaltySD > 0) {
-                    const lastBlockRedeem = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
-                    const prevHashRedeem = lastBlockRedeem ? lastBlockRedeem.Hash : "0".repeat(64);
-                    
-                    const now = new Date(); // Tạo một đối tượng Date cố định
-
-                    const currentHashRedeem = crypto.createHash('sha256')
-                        .update(prevHashRedeem + ve.Taikhoan + ve.LoyaltySD + "REDEEM" + now.getTime()) // Dùng now.getTime()
-                        .digest('hex');
-
-                    await new LoyaltyLedger({
-                        TaiKhoan: ve.Taikhoan,
-                        SoDiem: ve.LoyaltySD,
-                        HanhDong: "REDEEM",
-                        PreviousHash: prevHashRedeem,
-                        Hash: currentHashRedeem,
-                        Timestamp: now // Lưu chính xác đối tượng Date này
-                    }).save();
-
-                    await TaiKhoan.findByIdAndUpdate(ve.Taikhoan, {
-                        $inc: { DiemLoyalty: -ve.LoyaltySD }
-                    });
-                }
-
-                // --- XỬ LÝ BLOCKCHAIN: CỘNG ĐIỂM THƯỞNG (REWARD 5%) ---
-                const diemCong = Math.floor(ve.TongTien * 0.05 / 1000);
-                const lastBlock = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
-                const previousHash = lastBlock ? lastBlock.Hash : "0".repeat(64);
-
-                const currentHash = crypto.createHash('sha256')
-                    .update(previousHash + ve.Taikhoan + diemCong + "REWARD" + Date.now())
-                    .digest('hex');
-                const now = new Date(); 
-                await new LoyaltyLedger({
-                    TaiKhoan: ve.Taikhoan,
-                    SoDiem: diemCong,
-                    HanhDong: "REWARD",
-                    PreviousHash: previousHash,
-                    Hash: currentHash,
-                    Timestamp: now
-                }).save();
-
-                await TaiKhoan.findByIdAndUpdate(ve.Taikhoan, {
-                    $inc: { DiemLoyalty: diemCong }
                 });
+                // Tìm thông tin tài khoản để lấy số điểm hiện tại phục vụ việc băm
+                const userAccount = await TaiKhoan.findById(ve.Taikhoan);
+                const currentBalance = userAccount.DiemLoyalty;
 
-                // Render trang vé thành công
+// --- XỬ LÝ BLOCKCHAIN: TRỪ ĐIỂM SỬ DỤNG (REDEEM) ---
+if (ve.LoyaltySD > 0) {
+    const userForRedeem = await TaiKhoan.findById(ve.Taikhoan);
+    const balanceAfterRedeem = userForRedeem.DiemLoyalty - ve.LoyaltySD;
+
+    const lastBlockRedeem = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
+    const prevHashRedeem = lastBlockRedeem ? lastBlockRedeem.Hash : "0".repeat(64);
+    const nowRedeem = new Date();
+
+    const currentHashRedeem = crypto.createHash('sha256')
+        .update(prevHashRedeem + ve.Taikhoan + ve.LoyaltySD + "REDEEM" + balanceAfterRedeem + nowRedeem.getTime())
+        .digest('hex');
+
+    await new LoyaltyLedger({
+        TaiKhoan: ve.Taikhoan,
+        SoDiem: ve.LoyaltySD,
+        DiemHienTai: balanceAfterRedeem,
+        HanhDong: "REDEEM",
+        PreviousHash: prevHashRedeem,
+        Hash: currentHashRedeem,
+        Timestamp: nowRedeem
+    }).save();
+
+    // Cập nhật DB sau khi đã tạo xong Block
+    await TaiKhoan.findByIdAndUpdate(ve.Taikhoan, { $inc: { DiemLoyalty: -ve.LoyaltySD } });
+}
+
+// --- XỬ LÝ BLOCKCHAIN: CỘNG ĐIỂM THƯỞNG (REWARD) ---
+// Quan trọng: Lấy lại user một lần nữa để có số dư chính xác nhất sau khi vừa trừ (nếu có)
+const userForReward = await TaiKhoan.findById(ve.Taikhoan); 
+const diemCong = Math.floor(ve.TongTien * 0.05 / 1000);
+const balanceAfterReward = userForReward.DiemLoyalty + diemCong;
+
+const lastBlock = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
+const previousHash = lastBlock ? lastBlock.Hash : "0".repeat(64);
+const nowReward = new Date();
+
+const currentHash = crypto.createHash('sha256')
+    .update(previousHash + ve.Taikhoan + diemCong + "REWARD" + balanceAfterReward + nowReward.getTime())
+    .digest('hex');
+
+const newBlock = new LoyaltyLedger({
+    TaiKhoan: ve.Taikhoan,
+    SoDiem: diemCong,
+    DiemHienTai: balanceAfterReward, // Kiểm tra biến này có giá trị không
+    HanhDong: "REWARD",
+    PreviousHash: previousHash,
+    Hash: currentHash,
+    Timestamp: nowReward
+});
+
+
+await newBlock.save();
+await TaiKhoan.findByIdAndUpdate(ve.Taikhoan, { $inc: { DiemLoyalty: diemCong } });                // Render trang vé thành công
                 return res.render('ve', {
                     title: 'Đặt vé thành công',
                     ve: ve,
@@ -319,7 +329,7 @@ router.get('/vnpay_return', kiemTraDangNhap,async (req, res) => {
         return res.status(500).send("Lỗi hệ thống: " + error.message);
     }
 });
-router.get('/lichsuve',kiemTraDangNhap, async (req, res) => {
+router.get('/lichsuve', kiemTraDangNhap, async (req, res) => {
     try {
         const danhSachVe = await Ve.find({ Taikhoan: req.session.MaNguoiDung, TrangThai: 1 })
             .populate({
@@ -340,7 +350,7 @@ router.get('/lichsuve',kiemTraDangNhap, async (req, res) => {
         res.status(500).send("Lỗi server");
     }
 });
-router.get('/thongtinnguoidung',kiemTraDangNhap, async (req, res) => {
+router.get('/thongtinnguoidung', kiemTraDangNhap, async (req, res) => {
     try {
         // Đảm bảo lấy đúng MaNguoiDung từ session
         const maND = req.session.MaNguoiDung;
@@ -366,7 +376,7 @@ router.get('/thongtinnguoidung',kiemTraDangNhap, async (req, res) => {
         res.status(500).send("Lỗi máy chủ");
     }
 });
-router.post('/thongtinnguoidung', kiemTraDangNhap,async (req, res) => {
+router.post('/thongtinnguoidung', kiemTraDangNhap, async (req, res) => {
     try {
         const maND = req.session.MaNguoiDung;
         const { HoVaTen, Email, TenDangNhap, MatKhau, XacNhanMatKhau } = req.body;
@@ -418,40 +428,40 @@ router.get('/vecuatoi', kiemTraDangNhap, async (req, res) => {
         const homNay = new Date().toISOString().split('T')[0]; // Định dạng YYYY-MM-DD
 
         // Tìm vé: Đã thanh toán + Thuộc người dùng + Su suất chiếu có ngày >= hôm nay
-        const danhSachVe = await Ve.find({ 
-            Taikhoan: maND, 
-            TrangThai: 1 
+        const danhSachVe = await Ve.find({
+            Taikhoan: maND,
+            TrangThai: 1
         })
-        .populate({
-            path: 'SuatChieu',
-            populate: [
-                { path: 'Phim' },
-                { path: 'PhongChieu' }
-            ]
-        })
-        .sort({ 'SuatChieu.NgayChieu': 1 }); // Sắp xếp theo ngày chiếu gần nhất trước
-        if(danhSachVe.length > 0) {
+            .populate({
+                path: 'SuatChieu',
+                populate: [
+                    { path: 'Phim' },
+                    { path: 'PhongChieu' }
+                ]
+            })
+            .sort({ 'SuatChieu.NgayChieu': 1 }); // Sắp xếp theo ngày chiếu gần nhất trước
+        if (danhSachVe.length > 0) {
             console.log("Ngày mẫu từ DB:", danhSachVe[0].SuatChieu.NgayChieu);
             console.log("Giờ mẫu từ DB:", danhSachVe[0].SuatChieu.start);
         }
         const bayGio = moment();
         // Lọc lại ở phía Server để đảm bảo logic "Chưa tới ngày xem"
-const veSapToi = danhSachVe.filter(item => {
-    if (!item.SuatChieu || !item.SuatChieu.NgayChieu) return false;
+        const veSapToi = danhSachVe.filter(item => {
+            if (!item.SuatChieu || !item.SuatChieu.NgayChieu) return false;
 
-    // 1. Lấy ngày (định dạng YYYY-MM-DD)
-    const ngayStr = moment(item.SuatChieu.NgayChieu).format('YYYY-MM-DD');
-    
-    // 2. Lấy giờ chiếu - Đảm bảo lấy đúng trường GioChieu
-    // Thêm .trim() để xóa khoảng trắng thừa nếu có
-    const gioStr = item.SuatChieu.start ? item.SuatChieu.start.trim() : "00:00"; 
+            // 1. Lấy ngày (định dạng YYYY-MM-DD)
+            const ngayStr = moment(item.SuatChieu.NgayChieu).format('YYYY-MM-DD');
 
-    // 3. Gộp lại và ép kiểu
-    const thoiDiemChieu = moment(`${ngayStr} ${gioStr}`, "YYYY-MM-DD HH:mm");
-    const bayGio = moment();
+            // 2. Lấy giờ chiếu - Đảm bảo lấy đúng trường GioChieu
+            // Thêm .trim() để xóa khoảng trắng thừa nếu có
+            const gioStr = item.SuatChieu.start ? item.SuatChieu.start.trim() : "00:00";
 
-    return thoiDiemChieu.isAfter(bayGio);
-});
+            // 3. Gộp lại và ép kiểu
+            const thoiDiemChieu = moment(`${ngayStr} ${gioStr}`, "YYYY-MM-DD HH:mm");
+            const bayGio = moment();
+
+            return thoiDiemChieu.isAfter(bayGio);
+        });
         res.render('vecuatoi', {
             title: 'Vé Của Tôi',
             ve: veSapToi,
@@ -486,7 +496,7 @@ router.get('/chitietve/:idVe', kiemTraDangNhap, async (req, res) => {
     }
 });
 // Route: Kiểm tra tính toàn vẹn của hệ thống Blockchain Loyalty
-router.get('/verify-blockchain',kiemTraDangNhap, async (req, res) => {
+router.get('/verify-blockchain', kiemTraDangNhap, async (req, res) => {
     try {
         // Lấy toàn bộ sổ cái sắp xếp theo thời gian cũ đến mới
         const ledger = await LoyaltyLedger.find().sort({ Timestamp: 1 });
@@ -500,7 +510,7 @@ router.get('/verify-blockchain',kiemTraDangNhap, async (req, res) => {
             // Tính toán lại mã Hash dựa trên dữ liệu đang có trong DB
             // Lưu ý: Chuỗi update phải khớp tuyệt đối với lúc bạn tạo Block
             const calculatedHash = crypto.createHash('sha256')
-                .update(previousHash + currentBlock.TaiKhoan + currentBlock.SoDiem + currentBlock.HanhDong + currentBlock.Timestamp.getTime())
+                .update(previousHash + currentBlock.TaiKhoan + currentBlock.SoDiem + currentBlock.HanhDong + currentBlock.DiemHienTai + currentBlock.Timestamp.getTime())
                 .digest('hex');
 
             // So sánh Hash tính toán được với Hash đang lưu trong DB
