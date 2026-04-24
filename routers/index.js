@@ -253,60 +253,61 @@ router.get('/vnpay_return', kiemTraDangNhap, async (req, res) => {
                 const userAccount = await TaiKhoan.findById(ve.Taikhoan);
                 const currentBalance = userAccount.DiemLoyalty;
 
-// --- XỬ LÝ BLOCKCHAIN: TRỪ ĐIỂM SỬ DỤNG (REDEEM) ---
-if (ve.LoyaltySD > 0) {
-    const userForRedeem = await TaiKhoan.findById(ve.Taikhoan);
-    const balanceAfterRedeem = userForRedeem.DiemLoyalty - ve.LoyaltySD;
+                // --- XỬ LÝ BLOCKCHAIN: TRỪ ĐIỂM SỬ DỤNG (REDEEM) ---
+                if (ve.LoyaltySD > 0) {
+                    const userForRedeem = await TaiKhoan.findById(ve.Taikhoan);
+                    const balanceAfterRedeem = userForRedeem.DiemLoyalty - ve.LoyaltySD;
 
-    const lastBlockRedeem = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
-    const prevHashRedeem = lastBlockRedeem ? lastBlockRedeem.Hash : "0".repeat(64);
-    const nowRedeem = new Date();
+                    const lastBlockRedeem = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
+                    const prevHashRedeem = lastBlockRedeem ? lastBlockRedeem.Hash : "0".repeat(64);
+                    const nowRedeem = new Date();
 
-    const currentHashRedeem = crypto.createHash('sha256')
-        .update(prevHashRedeem + ve.Taikhoan + ve.LoyaltySD + "REDEEM" + balanceAfterRedeem + nowRedeem.getTime())
-        .digest('hex');
+                    const currentHashRedeem = crypto.createHash('sha256')
+                        .update(prevHashRedeem + ve.Taikhoan + ve.LoyaltySD + "REDEEM" + balanceAfterRedeem + nowRedeem.getTime())
+                        .digest('hex');
 
-    await new LoyaltyLedger({
-        TaiKhoan: ve.Taikhoan,
-        SoDiem: ve.LoyaltySD,
-        DiemHienTai: balanceAfterRedeem,
-        HanhDong: "REDEEM",
-        PreviousHash: prevHashRedeem,
-        Hash: currentHashRedeem,
-        Timestamp: nowRedeem
-    }).save();
+                    await new LoyaltyLedger({
+                        TaiKhoan: ve.Taikhoan,
+                        SoDiem: ve.LoyaltySD,
+                        DiemHienTai: balanceAfterRedeem,
+                        HanhDong: "REDEEM",
+                        PreviousHash: prevHashRedeem,
+                        Hash: currentHashRedeem,
+                        Timestamp: nowRedeem
+                    }).save();
 
-    // Cập nhật DB sau khi đã tạo xong Block
-    await TaiKhoan.findByIdAndUpdate(ve.Taikhoan, { $inc: { DiemLoyalty: -ve.LoyaltySD } });
-}
+                    // Cập nhật DB sau khi đã tạo xong Block
+                    await TaiKhoan.findByIdAndUpdate(ve.Taikhoan, { $inc: { DiemLoyalty: -ve.LoyaltySD } });
+                }
 
-// --- XỬ LÝ BLOCKCHAIN: CỘNG ĐIỂM THƯỞNG (REWARD) ---
-// Quan trọng: Lấy lại user một lần nữa để có số dư chính xác nhất sau khi vừa trừ (nếu có)
-const userForReward = await TaiKhoan.findById(ve.Taikhoan); 
-const diemCong = Math.floor(ve.TongTien * 0.05 / 1000);
-const balanceAfterReward = userForReward.DiemLoyalty + diemCong;
+                // --- XỬ LÝ BLOCKCHAIN: CỘNG ĐIỂM THƯỞNG (REWARD) ---
+                // Quan trọng: Lấy lại user một lần nữa để có số dư chính xác nhất sau khi vừa trừ (nếu có)
+                const userForReward = await TaiKhoan.findById(ve.Taikhoan); 
+                const diemCong = Math.floor(ve.TongTien * 0.05 / 1000);
+                const balanceAfterReward = userForReward.DiemLoyalty + diemCong;
 
-const lastBlock = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
-const previousHash = lastBlock ? lastBlock.Hash : "0".repeat(64);
-const nowReward = new Date();
+                const lastBlock = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
+                const previousHash = lastBlock ? lastBlock.Hash : "0".repeat(64);
+                const nowReward = new Date();
 
-const currentHash = crypto.createHash('sha256')
-    .update(previousHash + ve.Taikhoan + diemCong + "REWARD" + balanceAfterReward + nowReward.getTime())
-    .digest('hex');
+                const currentHash = crypto.createHash('sha256')
+                    .update(previousHash + ve.Taikhoan + diemCong + "REWARD" + balanceAfterReward + nowReward.getTime())
+                    .digest('hex');
 
-const newBlock = new LoyaltyLedger({
-    TaiKhoan: ve.Taikhoan,
-    SoDiem: diemCong,
-    DiemHienTai: balanceAfterReward, // Kiểm tra biến này có giá trị không
-    HanhDong: "REWARD",
-    PreviousHash: previousHash,
-    Hash: currentHash,
-    Timestamp: nowReward
-});
+                const newBlock = new LoyaltyLedger({
+                    TaiKhoan: ve.Taikhoan,
+                    SoDiem: diemCong,
+                    DiemHienTai: balanceAfterReward, // Kiểm tra biến này có giá trị không
+                    HanhDong: "REWARD",
+                    PreviousHash: previousHash,
+                    Hash: currentHash,
+                    Timestamp: nowReward
+                });
 
 
-await newBlock.save();
-await TaiKhoan.findByIdAndUpdate(ve.Taikhoan, { $inc: { DiemLoyalty: diemCong } });                // Render trang vé thành công
+                await newBlock.save();
+                await TaiKhoan.findByIdAndUpdate(ve.Taikhoan, { $inc: { DiemLoyalty: diemCong } });                
+                // Render trang vé thành công
                 return res.render('ve', {
                     title: 'Đặt vé thành công',
                     ve: ve,
@@ -498,58 +499,73 @@ router.get('/chitietve/:idVe', kiemTraDangNhap, async (req, res) => {
 // Route: Kiểm tra tính toàn vẹn của hệ thống Blockchain Loyalty
 router.get('/verify-blockchain', kiemTraDangNhap, async (req, res) => {
     try {
-        const maND = req.session.MaNguoiDung;
-        const user = await TaiKhoan.findById(maND);
-        
-        // Lấy lịch sử Ledger của riêng User này để đối soát số dư
-        const ledger = await LoyaltyLedger.find({ TaiKhoan: maND }).sort({ Timestamp: 1 });
-        
+        // 1. Lấy tất cả tài khoản và toàn bộ sổ cái
+        const [allUsers, allLedger] = await Promise.all([
+            TaiKhoan.find(),
+            LoyaltyLedger.find().sort({ Timestamp: 1 })
+        ]);
+
         let report = [];
-        let isValidChain = true;
-        let calculatedBalance = 0; // Tổng điểm tính từ lịch sử
+        let globalValid = true;
+        let globalBalanceMatch = true;
 
-        for (let i = 0; i < ledger.length; i++) {
-            const currentBlock = ledger[i];
-            const previousHash = i === 0 ? "0".repeat(64) : ledger[i - 1].Hash;
+        // 2. Duyệt qua từng người dùng để đối soát
+        allUsers.forEach(user => {
+            // Lọc các block thuộc về người dùng này
+            const userLedger = allLedger.filter(block => 
+                block.TaiKhoan.toString() === user._id.toString()
+            );
 
-            // Tính toán mã Hash để kiểm tra tính toàn vẹn
-            const calculatedHash = crypto.createHash('sha256')
-                .update(previousHash + currentBlock.TaiKhoan + currentBlock.SoDiem + currentBlock.HanhDong + (currentBlock.DiemHienTai || 0) + currentBlock.Timestamp.getTime())
-                .digest('hex');
+            let userCalculatedBalance = 0;
+            let userChainValid = true;
 
-            const isBlockValid = (calculatedHash === currentBlock.Hash);
-            const isChainValid = (currentBlock.PreviousHash === previousHash);
+            for (let i = 0; i < userLedger.length; i++) {
+                const currentBlock = userLedger[i];
+                // Lưu ý: Trong logic chuỗi chung hoặc chuỗi riêng, 
+                // PreviousHash thường dựa trên block trước đó trong mảng đã sort
+                const previousHash = i === 0 ? "0".repeat(64) : userLedger[i - 1].Hash;
 
-            if (!isBlockValid || !isChainValid) isValidChain = false;
+                // Tính toán mã Hash để kiểm tra tính toàn vẹn
+                const calculatedHash = crypto.createHash('sha256')
+                    .update(previousHash + currentBlock.TaiKhoan + currentBlock.SoDiem + currentBlock.HanhDong + (currentBlock.DiemHienTai || 0) + currentBlock.Timestamp.getTime())
+                    .digest('hex');
 
-            // Tính toán số dư dựa trên hành động để đối soát
-            if (currentBlock.HanhDong === "REWARD") calculatedBalance += currentBlock.SoDiem;
-            if (currentBlock.HanhDong === "REDEEM") calculatedBalance -= currentBlock.SoDiem;
+                const isBlockValid = (calculatedHash === currentBlock.Hash);
+                if (!isBlockValid) {
+                    userChainValid = false;
+                    globalValid = false;
+                }
 
+                // Cộng dồn điểm
+                if (currentBlock.HanhDong === "REWARD") userCalculatedBalance += currentBlock.SoDiem;
+                if (currentBlock.HanhDong === "REDEEM") userCalculatedBalance -= currentBlock.SoDiem;
+            }
+
+            // Đối soát số dư của user này
+            const isMatch = (user.DiemLoyalty === userCalculatedBalance);
+            if (!isMatch) globalBalanceMatch = false;
+
+            // Đẩy vào report để hiển thị theo từng User
             report.push({
-                index: i,
-                id: currentBlock._id,
-                action: currentBlock.HanhDong,
-                points: currentBlock.SoDiem,
-                status: (isBlockValid && isChainValid) ? "Hợp lệ ✅" : "Bị can thiệp ❌"
+                username: user.TenDangNhap,
+                dbBalance: user.DiemLoyalty,
+                ledgerBalance: userCalculatedBalance,
+                status: (userChainValid && isMatch) ? "Hợp lệ ✅" : "Phát hiện sai lệch ❌",
+                isMatch: isMatch,
+                isChainValid: userChainValid
             });
-        }
-
-        // Kiểm tra xem điểm trong bảng TaiKhoan có khớp với tổng lịch sử không
-        const isBalanceMatch = (user.DiemLoyalty === calculatedBalance);
+        });
 
         res.render('verify_blockchain', {
-            title: 'Kiểm định Sổ cái Blockchain',
+            title: 'Kiểm định Toàn bộ Hệ thống',
             report: report,
-            overallStatus: (isValidChain && isBalanceMatch) ? "Hệ thống An toàn" : "Cảnh báo: Phát hiện bất thường!",
-            isValidChain: isValidChain,
-            isBalanceMatch: isBalanceMatch,
-            dbBalance: user.DiemLoyalty,
-            ledgerBalance: calculatedBalance
+            isBalanceMatch: globalBalanceMatch,
+            overallStatus: (globalValid && globalBalanceMatch) ? "Hệ thống An toàn" : "Cảnh báo: Phát hiện sai lệch dữ liệu!"
         });
 
     } catch (error) {
-        res.status(500).send("Lỗi kiểm định: " + error.message);
+        console.error(error);
+        res.status(500).send("Lỗi kiểm định hệ thống: " + error.message);
     }
 });
 module.exports = router;
