@@ -251,7 +251,7 @@ router.get('/vnpay_return', kiemTraDangNhap,async (req, res) => {
                 });                 
                 // --- XỬ LÝ BLOCKCHAIN: TRỪ ĐIỂM SỬ DỤNG (REDEEM) ---
                 if (ve.LoyaltySD > 0) {
-                    const lastBlockRedeem = await LoyaltyLedger.findOne({ TaiKhoan: ve.Taikhoan }).sort({ Timestamp: -1 });
+                    const lastBlockRedeem = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
                     const prevHashRedeem = lastBlockRedeem ? lastBlockRedeem.Hash : "0".repeat(64);
                     
                     const now = new Date(); // Tạo một đối tượng Date cố định
@@ -276,7 +276,7 @@ router.get('/vnpay_return', kiemTraDangNhap,async (req, res) => {
 
                 // --- XỬ LÝ BLOCKCHAIN: CỘNG ĐIỂM THƯỞNG (REWARD 5%) ---
                 const diemCong = Math.floor(ve.TongTien * 0.05 / 1000);
-                const lastBlock = await LoyaltyLedger.findOne({ TaiKhoan: ve.Taikhoan }).sort({ Timestamp: -1 });
+                const lastBlock = await LoyaltyLedger.findOne().sort({ Timestamp: -1 });
                 const previousHash = lastBlock ? lastBlock.Hash : "0".repeat(64);
 
                 const currentHash = crypto.createHash('sha256')

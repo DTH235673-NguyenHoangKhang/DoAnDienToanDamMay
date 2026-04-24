@@ -79,7 +79,6 @@
                                         <div class="d-flex flex-wrap gap-2 mt-2">
                                             <% 
                                                 let bayGio = new Date().getTime(); 
-
                                                 let suatHienThi = suatChieu.filter(function(s) {
                                                     let idPhimTrongSuat = (s.Phim && s.Phim._id) ? s.Phim._id : (s.Phim || s.IdPhim || "");
                                                     let laPhimNay = idPhimTrongSuat.toString() === item._id.toString();
