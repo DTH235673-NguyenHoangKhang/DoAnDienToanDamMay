@@ -25,7 +25,6 @@ async function checkConstraints(reqBody) {
     const { start, end, NgayChieu } = reqBody;
     if (!start || !end || !NgayChieu) return "Vui lòng nhập đầy đủ thông tin.";
 
-    // Chuyển "HH:mm" thành số phút để so sánh chính xác
     const timeToMinutes = (t) => {
         const [h, m] = t.split(':').map(Number);
         return h * 60 + m;
@@ -34,12 +33,10 @@ async function checkConstraints(reqBody) {
     const startMin = timeToMinutes(start);
     const endMin = timeToMinutes(end);
 
-    // 1. Kiểm tra Giờ bắt đầu phải trước Giờ kết thúc
     if (startMin >= endMin) {
         return "Lỗi: Giờ bắt đầu phải trước giờ kết thúc.";
     }
 
-    // 2. Kiểm tra Ngày chiếu (Phải dùng local time để tránh lệch múi giờ)
     const [year, month, day] = NgayChieu.split('-').map(Number);
     const inputDate = new Date(year, month - 1, day); 
     inputDate.setHours(0, 0, 0, 0);
@@ -47,13 +44,14 @@ async function checkConstraints(reqBody) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    if (inputDate <= today) {
-        req.session.error= "Lỗi: Ngày chiếu phải từ ngày mai.";
-        redirect('/error')
+    // So sánh: Nếu ngày nhập vào NHỎ HƠN HOẶC BẰNG ngày hiện tại thì báo lỗi
+    if (inputDate.getTime() <= today.getTime()) {
+        return "Lỗi: Ngày chiếu phải từ ngày mai.";
     }
 
     return null; 
-}// GET: Thêm 
+}
+// GET: Thêm 
 router.get('/them', async (req, res) => {
     try {
             const listPhim = await Phim.find(); 
