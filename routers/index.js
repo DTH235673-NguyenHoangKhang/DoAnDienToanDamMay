@@ -498,41 +498,54 @@ router.get('/chitietve/:idVe', kiemTraDangNhap, async (req, res) => {
 // Route: Kiểm tra tính toàn vẹn của hệ thống Blockchain Loyalty
 router.get('/verify-blockchain', kiemTraDangNhap, async (req, res) => {
     try {
-        // Lấy toàn bộ sổ cái sắp xếp theo thời gian cũ đến mới
-        const ledger = await LoyaltyLedger.find().sort({ Timestamp: 1 });
+        const maND = req.session.MaNguoiDung;
+        const user = await TaiKhoan.findById(maND);
+        
+        // Lấy lịch sử Ledger của riêng User này để đối soát số dư
+        const ledger = await LoyaltyLedger.find({ TaiKhoan: maND }).sort({ Timestamp: 1 });
+        
         let report = [];
-        let isValid = true;
+        let isValidChain = true;
+        let calculatedBalance = 0; // Tổng điểm tính từ lịch sử
 
         for (let i = 0; i < ledger.length; i++) {
             const currentBlock = ledger[i];
             const previousHash = i === 0 ? "0".repeat(64) : ledger[i - 1].Hash;
 
-            // Tính toán lại mã Hash dựa trên dữ liệu đang có trong DB
-            // Lưu ý: Chuỗi update phải khớp tuyệt đối với lúc bạn tạo Block
+            // Tính toán mã Hash để kiểm tra tính toàn vẹn
             const calculatedHash = crypto.createHash('sha256')
-                .update(previousHash + currentBlock.TaiKhoan + currentBlock.SoDiem + currentBlock.HanhDong + currentBlock.DiemHienTai + currentBlock.Timestamp.getTime())
+                .update(previousHash + currentBlock.TaiKhoan + currentBlock.SoDiem + currentBlock.HanhDong + (currentBlock.DiemHienTai || 0) + currentBlock.Timestamp.getTime())
                 .digest('hex');
 
-            // So sánh Hash tính toán được với Hash đang lưu trong DB
             const isBlockValid = (calculatedHash === currentBlock.Hash);
             const isChainValid = (currentBlock.PreviousHash === previousHash);
 
-            if (!isBlockValid || !isChainValid) {
-                isValid = false;
-            }
+            if (!isBlockValid || !isChainValid) isValidChain = false;
+
+            // Tính toán số dư dựa trên hành động để đối soát
+            if (currentBlock.HanhDong === "REWARD") calculatedBalance += currentBlock.SoDiem;
+            if (currentBlock.HanhDong === "REDEEM") calculatedBalance -= currentBlock.SoDiem;
 
             report.push({
                 index: i,
                 id: currentBlock._id,
                 action: currentBlock.HanhDong,
+                points: currentBlock.SoDiem,
                 status: (isBlockValid && isChainValid) ? "Hợp lệ ✅" : "Bị can thiệp ❌"
             });
         }
 
+        // Kiểm tra xem điểm trong bảng TaiKhoan có khớp với tổng lịch sử không
+        const isBalanceMatch = (user.DiemLoyalty === calculatedBalance);
+
         res.render('verify_blockchain', {
             title: 'Kiểm định Sổ cái Blockchain',
             report: report,
-            overallStatus: isValid ? "Hệ thống An toàn" : "Cảnh báo: Dữ liệu đã bị sửa đổi!"
+            overallStatus: (isValidChain && isBalanceMatch) ? "Hệ thống An toàn" : "Cảnh báo: Phát hiện bất thường!",
+            isValidChain: isValidChain,
+            isBalanceMatch: isBalanceMatch,
+            dbBalance: user.DiemLoyalty,
+            ledgerBalance: calculatedBalance
         });
 
     } catch (error) {
