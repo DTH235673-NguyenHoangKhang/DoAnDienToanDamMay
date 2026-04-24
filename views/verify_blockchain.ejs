@@ -33,7 +33,7 @@
         </thead>
         <tbody>
             <% report.forEach(user => { %>
-                <tr class="<%= !user.isMatch || !user.isChainValid ? 'table-danger' : '' %>">
+                <tr class="<%= !user.isMatch? 'table-danger' : '' %>">
                     <td><%= user.username %></td>
                     <td class="fw-bold"><%= user.dbBalance %></td>
                     <td><%= user.ledgerBalance %></td>
